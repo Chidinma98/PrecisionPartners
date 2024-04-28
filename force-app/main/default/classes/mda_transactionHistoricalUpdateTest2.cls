@@ -8,7 +8,7 @@
 
 @isTest(seeAllData=True)
 public class mda_transactionHistoricalUpdateTest2 {
- /**
+/**
  * @description:Scenario 1
  * @Comments: Check situation where Batch Source of Data is "Annual Fund Lockbox" and Transaction Type is "Payment"
 **/     
@@ -51,10 +51,10 @@ public class mda_transactionHistoricalUpdateTest2 {
         System.assertEquals(uTrans1.MDA_GL_Posting_Type__c, 'Automated');
     } 
     
- /**
+/**
  * @description:Scenario 2
  * @Comments: Check situation where Batch Source of Data 
- * is "Annual Fund Lockbox" and Transaction Type is anything but "Soft Credit"
+ * is "Annual Fund Lockbox" and Transaction Type is  "Soft Credit"
 **/
     static testmethod void scenario2(){
         //ADD BATCH DATA
@@ -92,7 +92,7 @@ public class mda_transactionHistoricalUpdateTest2 {
    	
     }
 
- /**
+/**
  * @description:Scenario 3
  * @Comments: Check situation where Batch Source of Data 
  * is "Annual Fund Lockbox" and Transaction Type is anything but "Payment, 'Soft Credit', 'Pledge Soft Credit' "
@@ -180,7 +180,7 @@ static testmethod void scenario3(){
 
    	
     }
-//  /**
+// /**
 //  * @description:Scenario 5
 //  * @Comments: Check situation where Batch Source of Data 
 //  * is Mail and Transaction Type is "Grant Payment" and Payment Method is "Soft Credit"
@@ -413,7 +413,7 @@ static testmethod void scenario6(){
 //  * @Comments: Check situation where Batch Source of Data 
 //  * is Mail and Transaction Type is "Payment" and Pledge Payment 
 //  * is "True" and Pledge Stipulation is "Conditional" and Transaction Method is not "Soft Credit, Credit Card, 
-//      Cash, Check, Securities, ACH, Wire, ACH/Wire, Paypal, Transfer "
+//  * Cash, Check, Securities, ACH, Wire, ACH/Wire, Paypal, Transfer "
 // **/
 static testmethod void scenario10(){
     //ADD BATCH DATA
@@ -559,7 +559,7 @@ static testmethod void scenario12(){
 //  * @description:Scenario 13
 //  * @Comments: Check situation where Batch Source of Data 
 //  * is Mail and Transaction Type is "Payment" and Pledge Payment 
-//  * is "True" and Pledge Stipulation is "Conditional" and Transaction Method is "Soft Credit"
+//  * is "True" and Pledge Stipulation is "Unconditional" and Transaction Method is "Soft Credit"
 // **/
 static testmethod void scenario13(){
     //ADD BATCH DATA
@@ -837,7 +837,7 @@ static testmethod void scenario17(){
 
 // /**
 //  * @description:Scenario 19
-//  * @Comments: Check situation where Transaction Type is 'Soft Credit' or 'Pledge Soft Credit'
+//  * @Comments: Check situation where Batch Source of Data is Mail Transaction Type is 'Soft Credit' or 'Pledge Soft Credit'
 // **/
     static testmethod void scenario19(){
         //ADD BATCH DATA
@@ -877,7 +877,7 @@ static testmethod void scenario17(){
 
 // /**
 //  * @description:Scenario 20
-//  * @Comments: Check situation where Transaction Type is neither
+//  * @Comments: Check situation where Batch Source of Data is Mail Transaction Type is neither
 //   Soft Credit, Pledge Soft Credit, Payment or Grant Payment
 // **/
 static testmethod void scenario20(){
