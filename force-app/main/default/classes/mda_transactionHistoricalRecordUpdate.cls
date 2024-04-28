@@ -52,6 +52,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         List<AQB__Transaction__c> correctTransactions = new List<AQB__Transaction__c>();
         
         for(AQB__Transaction__c trans: transList) {
+        trans.MDA_Credit_Debit_Account_Error__c = false;
          //Check Posted Transaction and Batch Status
          if(trans.AQB__FinancialSystemDate__c == NULL && trans.AQB__Batch__r.AQB__RecordTypeDeveloperName__c != 'ClosedBatch'){
          //Check Voided Transaction
