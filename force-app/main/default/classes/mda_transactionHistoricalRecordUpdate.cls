@@ -70,10 +70,13 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 	 else if(transType2.contains(trans.AQB__Type__c)){
                          trans.AQB__Do_not_push_to_Accounting__c = true;
                          recordsProcessed = recordsProcessed + 1;
+                       
                      }
-                //Scenario 2.5 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
+                //Scenario 3 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
                 	 else{
                      	trans.MDA_Credit_Debit_Account_Error__c = true;
+                         recordsProcessed = recordsProcessed + 1;
+                      
                 	}
                    
         	}
@@ -81,7 +84,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              else if(dataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c) == true){
                 //Check Payment Type - Grant Payment
                 if(trans.AQB__Type__c == 'Grant Payment'){
-                    //Scenario 3 = Transaction Type of Grant Payment with method of Check, ACH, Wire, ACH/Wire
+                    //Scenario 4 = Transaction Type of Grant Payment with method of Check, ACH, Wire, ACH/Wire
                     if(paymentMethod3.contains(trans.AQB__Method__c)){
                    	   trans.AQB__DebitAccount__c = coa3[0].Id;
                        trans.MDA_Debit_Account__c = coa3[0].Id;
@@ -93,12 +96,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        
                     } 
          
-                    //Scenario 4.5 - Checks Transaction Type of Soft Credit                   
+                    //Scenario 5 - Checks Transaction Type of Soft Credit                   
                     else if(trans.AQB__Method__c == 'Soft Credit'){
                         trans.AQB__Do_not_push_to_Accounting__c = true;
                         recordsProcessed = recordsProcessed + 1;
                     	}
-                    //Scenario 4.6 - Checks Transaction Type of anything besides Soft Credit, Check, ACH, Wire, ACH/Wire  
+                    //Scenario 6 - Checks Transaction Type of anything besides Soft Credit, Check, ACH, Wire, ACH/Wire  
                     else {
                         trans.MDA_Credit_Debit_Account_Error__c = true;
                         recordsProcessed = recordsProcessed + 1; 
