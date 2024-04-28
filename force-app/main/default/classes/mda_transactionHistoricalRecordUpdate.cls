@@ -16,21 +16,17 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
    List<AQB__Transaction__c> transList = new  List<AQB__Transaction__c>();
    public static  Set<String>  getNum(Integer num) {
     Set<String> container = new Set<String>{};
-
         for (Integer i = 0; i<= num; i++){
-            String num2 = String.valueOf(num);
+            String num2 = String.valueOf(i);
             container.add(num2);
-            } 
+            }
+            container.add('correctTrans');
         return container; 
     }
   
  
     global Database.QueryLocator start(Database.BatchableContext BC) {
-        Set<String> testValues = new Set<String>{'1','2','3','4','5','6','7','8','9',
-            									'10','11','12','correctTrans','13',
-            									'14','15','16','17','18','19','20',
-                                                '21','22','23','24','25','26','27',
-                                                '28','29','30','31','32','33'};
+        Set<String> testValues = getNum(33);
         String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
         if (Test.isRunningTest()){
         	//query += ' LIMIT 100';
@@ -239,7 +235,6 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 }
                 //--Scenario 20 - Checks transaction type of anything besides what is included above
                 else{
-                    system.debug('Enters Scenario 20');
                     trans.MDA_Credit_Debit_Account_Error__c = true;
                     recordsProcessed = recordsProcessed + 1; 
                  
