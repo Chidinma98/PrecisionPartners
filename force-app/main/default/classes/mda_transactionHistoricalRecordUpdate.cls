@@ -66,12 +66,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        recordsProcessed = recordsProcessed + 1;
                    
                     }
-                //Scenario 2.5 - Source of Data Annual Fund with Transaction Type of 'Soft Credit' and 'Pledge Soft Credit'
+                //Scenario 2 - Source of Data Annual Fund with Transaction Type of 'Soft Credit' and 'Pledge Soft Credit'
                 	 else if(transType2.contains(trans.AQB__Type__c)){
                          trans.AQB__Do_not_push_to_Accounting__c = true;
                          recordsProcessed = recordsProcessed + 1;
                      }
-                //Scenario 2.6 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
+                //Scenario 2.5 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
                 	 else{
                      	trans.MDA_Credit_Debit_Account_Error__c = true;
                 	}
