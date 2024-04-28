@@ -14,6 +14,15 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
    //Id batchId = Database.executeBatch(myBatchObject);
    Integer recordsProcessed = 0;
    List<AQB__Transaction__c> transList = new  List<AQB__Transaction__c>();
+   public static  Set<String>  getNum(Integer num) {
+    Set<String> container = new Set<String>{};
+
+        for (Integer i = 0; i<= num; i++){
+            String num2 = String.valueOf(num);
+            container.add(num2);
+            } 
+        return container; 
+    }
   
  
     global Database.QueryLocator start(Database.BatchableContext BC) {
