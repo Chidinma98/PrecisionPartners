@@ -14,11 +14,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
    //Id batchId = Database.executeBatch(myBatchObject);
    Integer recordsProcessed = 0;
    List<AQB__Transaction__c> transList = new  List<AQB__Transaction__c>();
+  
  
     global Database.QueryLocator start(Database.BatchableContext BC) {
         Set<String> testValues = new Set<String>{'1','2','3','4','5','6','7','8','9',
             									'10','11','12','correctTrans','13',
-            									'14','15','16','17','18','19'};
+            									'14','15','16','17','18','19','20',
+                                                '21','22','23','24','25','26','27',
+                                                '28','29','30','31','32','33'};
         String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
         if (Test.isRunningTest()){
         	//query += ' LIMIT 100';
@@ -226,9 +229,10 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 }
                 //--Scenario 20 - Checks transaction type of anything besides what is included above
                 else{
+                    system.debug('Enters Scenario 20');
                     trans.MDA_Credit_Debit_Account_Error__c = true;
                     recordsProcessed = recordsProcessed + 1; 
-                    system.debug('Enters Scenario 20');
+                 
                 }
 
             }
@@ -262,7 +266,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
           Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
           Id gift = trans.AQB__Gift__c;
           AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
-             //Scenario 12 -- Transaction Type of Grant Payment with Corrected Transaction found 
+             //Scenario 24 -- Transaction Type of Grant Payment with Corrected Transaction found 
              if(correctTrans.size() > 0){
                  for(AQB__Transaction__c trans2: correctTrans){
                      trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -275,7 +279,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 					 correctTransactions.add(trans2);
 
                  }
-               //Scenario 13 -- No Corrected Transaction found for Grant Payment  
+               //Scenario 25 -- No Corrected Transaction found for Grant Payment  
              }else{
                  trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
@@ -288,7 +292,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              
              
          } else if(trans.AQB__Type__c == 'Payment'){
-             //Scenario 14 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
+             //Scenario 26 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
              // and corrected transaction found
              if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
                 Id transId = trans.Id;
@@ -308,7 +312,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  	}
                  
              	}else{
-                //Scenario 15 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
+                //Scenario 27 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
                 // and no corrected transaction found
       			 trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
@@ -319,7 +323,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              	}
                  
              }else if(trans.AQB__PledgePayment__c == false){
-                //Scenario 16 - Transaction Type of Payment with NO adjusted pledge payment 
+                //Scenario 28 - Transaction Type of Payment with NO adjusted pledge payment 
                 //AND corrected transaction found
           		Id transId = trans.Id;
           		Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
@@ -338,7 +342,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  	}
                  
              	}else{
-                //Scenario 17 - Transaction Type of Payment with NO adjusted pledge payment 
+                //Scenario 29 - Transaction Type of Payment with NO adjusted pledge payment 
                 //AND NO corrected transaction found
                  trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
@@ -350,21 +354,21 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  
              }
              
-            //Scenario 17.5 - Transaction Type of Payment with True pledge payment and stipulation that is anything but conditional
+            //Scenario 30 - Transaction Type of Payment with True pledge payment and stipulation that is anything but conditional
             else if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional'){
                 	trans.MDA_GL_Posting_Type__c = 'Manual';     
             }
          
-        //Scenario 18 - Checks Transaction Type of either Grant, Soft Credit and Pledge Soft Credit
+        //Scenario 31 - Checks Transaction Type of either Grant, Soft Credit and Pledge Soft Credit
          } else if(transType.contains(trans.AQB__Type__c) == true){
             trans.AQB__Do_not_push_to_Accounting__c = true;
          }
          
-         //Scenario 19- Checks the Trandaction type of PLEDGE for voided transactions 
+         //Scenario 32- Checks the Trandaction type of PLEDGE for voided transactions 
          else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Unconditional'){
              trans.MDA_GL_Posting_Type__c = 'Manual';    
              
-         }//Scenario 20- Checks the Trandaction type of anything but what is above
+         }//Scenario 33- Checks the Trandaction type of anything but what is above
          else {
             trans.MDA_Credit_Debit_Account_Error__c = true;  
             
