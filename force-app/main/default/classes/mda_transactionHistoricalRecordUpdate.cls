@@ -36,8 +36,10 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         Set<String> dataSource = new Set<String>{'Mail','Institutional Lockbox', 'Children\'s Art Project (CAP)', 'Live Check / Credit Card (MD Anderson Front Office)', 
             									'MDA Treasury', 'Special Events Lockbox', 'MDA Cashier Office', 'Online - Donation Sites',
             									'Online - Event Registration Sites', 'Online - Peer 2 Peer Sites', 'UT Foundation'};
-        Set<String> paymentMethod = new Set<String>{'Check','Securities','ACH','Wire','ACH/Wire, Paypal, Transfer'};
+        Set<String> paymentMethod = new Set<String>{'Cash','Check','Securities','ACH','Wire','ACH/Wire, Paypal, Transfer'};
         Set<String> paymentMethod2 = new Set<String>{'Cash', 'Check','Securities','ACH','Wire','ACH/Wire'};
+        Set<String> paymentMethod3 = new Set<String>{'Check','ACH','Wire','ACH/Wire'};
+        Set<String> paymentMethod4 = new Set<String>{'Cash','Check','Securities','ACH','Wire','ACH/Wire', 'Paypal'};
         Set<String> transactionType = new Set<String>{'Grant Payment', 'Payment', 'Soft Credit'};
         Set<String> otherDataSource = new Set<String>{'Pledge Form / Documentation','Grants Management System','Gift in Kind Form / Documentation','Adjustments'};
         Set<String> transType = new Set<String>{ 'Grant', 'Soft Credit', 'Pledge Soft Credit'};
@@ -64,18 +66,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        recordsProcessed = recordsProcessed + 1;
                    
                     }
-                /**Scenario 2
-            		 else if(trans.AQB__Type__c != 'Payment' && trans.AQB__Type__c != 'Soft Credit'){
-                        trans.MDA_Credit_Debit_Account_Error__c = true;
-                        recordsProcessed = recordsProcessed + 1;
-                        
-                     } **/
                 //Scenario 2.5 - Source of Data Annual Fund with Transaction Type of 'Soft Credit' and 'Pledge Soft Credit'
                 	 else if(transType2.contains(trans.AQB__Type__c)){
                          trans.AQB__Do_not_push_to_Accounting__c = true;
                          recordsProcessed = recordsProcessed + 1;
                      }
-                //Scenario 2.6
+                //Scenario 2.6 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
                 	 else{
                      	trans.MDA_Credit_Debit_Account_Error__c = true;
                 	}
@@ -85,8 +81,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              else if(dataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c) == true){
                 //Check Payment Type - Grant Payment
                 if(trans.AQB__Type__c == 'Grant Payment'){
-                    //Scenario 3
-                    if(paymentMethod.contains(trans.AQB__Method__c)){
+                    //Scenario 3 = Transaction Type of Grant Payment with method of Check, ACH, Wire, ACH/Wire
+                    if(paymentMethod3.contains(trans.AQB__Method__c)){
                    	   trans.AQB__DebitAccount__c = coa3[0].Id;
                        trans.MDA_Debit_Account__c = coa3[0].Id;
                        trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -96,28 +92,26 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        recordsProcessed = recordsProcessed + 1;
                        
                     } 
-                 
-                    //Scenario 4
-                   
-                	else if (paymentMethod.contains(trans.AQB__Method__c) == false && trans.AQB__Method__c !='Soft Credit' ){
-                         trans.MDA_Credit_Debit_Account_Error__c = true;
-                         recordsProcessed = recordsProcessed + 1;     
-                   		}
-                    //Scenario 4.5
-                    
+         
+                    //Scenario 4.5 - Checks Transaction Type of Soft Credit                   
                     else if(trans.AQB__Method__c == 'Soft Credit'){
                         trans.AQB__Do_not_push_to_Accounting__c = true;
                         recordsProcessed = recordsProcessed + 1;
                     	}
+                    //Scenario 4.6 - Checks Transaction Type of anything besides Soft Credit, Check, ACH, Wire, ACH/Wire  
+                    else {
+                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                        recordsProcessed = recordsProcessed + 1; 
+                    }
                      
                 	}
             	//Check Payment Type - Payment 
             	  
                 else if(trans.AQB__Type__c == 'Payment'){
-                    //Scenario 5 
+                    //Scenario 5 - Checks if linked to a pledge payment and pledge stipulation is conditional
                     
                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional' ){
-                        if(paymentMethod2.contains(trans.AQB__Method__c) == true ){
+                        if(paymentMethod.contains(trans.AQB__Method__c) == true ){
                             trans.AQB__DebitAccount__c = coa3[0].Id;
                        		trans.MDA_Debit_Account__c = coa3[0].Id;
                        		trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -125,7 +119,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        		trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;            
                          	trans.MDA_GL_Posting_Type__c = 'Automated';
                             recordsProcessed = recordsProcessed + 1;
-                       //Scenario 6    
+                       //Scenario 6  - Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card  
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             trans.AQB__DebitAccount__c = coa2[0].Id;
                        		trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -134,23 +128,23 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        		trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;    
                             trans.MDA_GL_Posting_Type__c = 'Automated'; 
                            recordsProcessed = recordsProcessed + 1;
-                       //Scenario 7     
-                       } else if(trans.AQB__Method__c != 'Credit Card' && paymentMethod2.contains(trans.AQB__Method__c) == false && trans.AQB__Method__c != 'Soft Credit') {
-                           trans.MDA_Credit_Debit_Account_Error__c = true;
-						   recordsProcessed = recordsProcessed + 1;
-                          
-
-                       }
-                       //Scenario 7.5
+                         
+                       } 
+                       //Scenario 7.5 Checks if linked to a pledge payment and pledge stipulation is conditional with method of soft credit
                        else if (trans.AQB__Method__c == 'Soft Credit'){
                            trans.AQB__Do_not_push_to_Accounting__c = true;
-                           
+                          
+                       //Scenario 7.6 -  Checks if linked to a pledge payment and pledge stipulation is conditional with method besides what is listed above   
+                       } else{
+                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                        recordsProcessed = recordsProcessed + 1;
+
                        }
                         
                     }
-                    //Scenarion 7.6
-                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Unconditional' ){
-                        if(paymentMethod2.contains(trans.AQB__Method__c) == true ){
+                    //Scenarion 7.6- Checks for Pledge Payment and Unconditional pledge stipulation
+                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional' ){
+                        if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
                             trans.AQB__DebitAccount__c = coa3[0].Id;
                        		trans.MDA_Debit_Account__c = coa3[0].Id;
                        		trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -158,7 +152,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        		trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;            
                          	trans.MDA_GL_Posting_Type__c = 'Manual';
                             recordsProcessed = recordsProcessed + 1;
-                       //Scenario 7.7    
+                       //Scenario 7.7- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card    
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             trans.AQB__DebitAccount__c = coa2[0].Id;
                        		trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -167,22 +161,25 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        		trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;    
                             trans.MDA_GL_Posting_Type__c = 'Manual'; 
                            recordsProcessed = recordsProcessed + 1;
-                       //Scenario 7.8     
-                       } else if(trans.AQB__Method__c != 'Credit Card' && paymentMethod2.contains(trans.AQB__Method__c) == false && trans.AQB__Method__c != 'Soft Credit') {
-                           trans.MDA_Credit_Debit_Account_Error__c = true;
-						   recordsProcessed = recordsProcessed + 1;
-                       }
-                       //Scenario 7.9
+                 
+                       } 
+                       //Scenario 7.8- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of soft credit
                        else if (trans.AQB__Method__c == 'Soft Credit'){
                            trans.AQB__Do_not_push_to_Accounting__c = true;
                            recordsProcessed = recordsProcessed + 1;
                            
                        }
+                      //Scenario 7.9- - Checks for Pledge Payment and Unconditional pledge stipulation with payment method
+                      //of anything not included above  
+                     else{
+                           trans.MDA_Credit_Debit_Account_Error__c = true;
+                           recordsProcessed = recordsProcessed + 1;
+                       }
                         
                     }
-                    //Scenario 8 
+                    //Scenario 8 - Checks for false pledge payment
                    else if(trans.AQB__PledgePayment__c == false){
-                        if(paymentMethod2.contains(trans.AQB__Method__c) ){
+                        if(paymentMethod.contains(trans.AQB__Method__c) ){
                             trans.AQB__DebitAccount__c = coa3[0].Id;
                        		trans.MDA_Debit_Account__c = coa3[0].Id;
                        		trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -191,7 +188,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                             trans.MDA_GL_Posting_Type__c = 'Automated';
                             recordsProcessed = recordsProcessed + 1;
                             
-                         //Scenario 9  
+                         //Scenario 9 - Checks for false pledge payment and payment method of Credit Card
                        } else if(trans.AQB__Method__c == 'Credit Card'){
                            trans.AQB__DebitAccount__c = coa2[0].Id;
                        	   trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -202,15 +199,16 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                            recordsProcessed = recordsProcessed + 1;
                            
                               
-                          //Scenario 10 
-                       } else if(trans.AQB__Method__c != 'Credit Card' && paymentMethod2.contains(trans.AQB__Method__c) == false && trans.AQB__Method__c != 'Soft Credit') {
-                          trans.MDA_Credit_Debit_Account_Error__c = true;
-                          recordsProcessed = recordsProcessed + 1;
-                              
-                           //Scenario 10.5  
+                        //Scenario 10 - Checks for false pledge payment and payment method of soft credit 
                        } else if(trans.AQB__Method__c == 'Soft Credit'){
                            trans.AQB__Do_not_push_to_Accounting__c = true;
+                           recordsProcessed = recordsProcessed + 1;
                            
+                        //Scenario 10.5-  //Scenario 10 - Checks for false pledge payment and payment method of anything 
+                        // besides soft credit or anything included above
+                       }else {
+                            trans.MDA_Credit_Debit_Account_Error__c = true;
+                            recordsProcessed = recordsProcessed + 1;
                        }
                         
                     }
