@@ -283,7 +283,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              
              
          } else if(trans.AQB__Type__c == 'Payment'){
-             //Scenario 14 
+             //Scenario 14 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
+             // and corrected transaction found
              if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
                 Id transId = trans.Id;
           		Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
@@ -302,7 +303,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  	}
                  
              	}else{
-                //Scenario15
+                //Scenario 15 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
+                // and no corrected transaction found
       			 trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
                  trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
@@ -312,7 +314,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              	}
                  
              }else if(trans.AQB__PledgePayment__c == false){
-                 //Scenario 16 
+                //Scenario 16 - Transaction Type of Payment with NO adjusted pledge payment 
+                //AND corrected transaction found
           		Id transId = trans.Id;
           		Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
           		Id gift = trans.AQB__Gift__c;
@@ -330,7 +333,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  	}
                  
              	}else{
-                  //Scenario 17 
+                //Scenario 17 - Transaction Type of Payment with NO adjusted pledge payment 
+                //AND NO corrected transaction found
                  trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
                  trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
@@ -341,21 +345,25 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  
              }
              
-            //Scenario 17.5 - Transaction Type of Payment with FALSE pledge payment and Unconditional stipulation 
-            else if(trans.AQB__PledgePayment__c == false && trans.AQB__PledgeStipulation__c == 'Unconditional'){
+            //Scenario 17.5 - Transaction Type of Payment with True pledge payment and stipulation that is anything but conditional
+            else if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional'){
                 	trans.MDA_GL_Posting_Type__c = 'Manual';     
             }
-             //Scenario 18 
-         } else if(transType.contains(trans.AQB__Type__c) == false){
-              trans.MDA_Credit_Debit_Account_Error__c = true;
+         
+        //Scenario 18 - Checks Transaction Type of either Grant, Soft Credit and Pledge Soft Credit
+         } else if(transType.contains(trans.AQB__Type__c) == true){
+            trans.AQB__Do_not_push_to_Accounting__c = true;
          }
          
          //Scenario 19- Checks the Trandaction type of PLEDGE for voided transactions 
          else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Unconditional'){
-             trans.MDA_GL_Posting_Type__c = 'Manual'; 
+             trans.MDA_GL_Posting_Type__c = 'Manual';    
              
-             
-         }
+         }//Scenario 20- Checks the Trandaction type of anything but what is above
+         else {
+            trans.MDA_Credit_Debit_Account_Error__c = true;  
+            
+        }
       
       }
     }
