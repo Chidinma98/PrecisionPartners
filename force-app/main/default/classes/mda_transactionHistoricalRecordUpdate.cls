@@ -41,7 +41,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         Set<String> paymentMethod3 = new Set<String>{'Check','ACH','Wire','ACH/Wire'};
         Set<String> paymentMethod4 = new Set<String>{'Cash','Check','Securities','ACH','Wire','ACH/Wire', 'Paypal'};
         Set<String> transactionType = new Set<String>{'Grant Payment', 'Payment', 'Soft Credit'};
-        Set<String> otherDataSource = new Set<String>{'Pledge Form / Documentation','Grants Management System','Gift in Kind Form / Documentation','Adjustments'};
+        Set<String> otherDataSource = new Set<String>{'Grants Management System','Gift in Kind Form / Documentation','Planned Giving Form / Documentation'};
         Set<String> transType = new Set<String>{ 'Grant', 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> transType2 = new Set<String>{ 'Soft Credit', 'Pledge Soft Credit'};
             
@@ -215,22 +215,20 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                    
                     
                 }
-                
-                //-- Scenario 11 Check Transaction Type - Any Other Value 
-                else if(transactionType.contains(trans.AQB__Type__c) == false){
-                    trans.MDA_Credit_Debit_Account_Error__c = true;
-                    recordsProcessed = recordsProcessed + 1; 
-				                    
-                } 
                //--Scenario 11.5 - Checks Transaction Type of Soft Credit, Pledge, Grant, Pledge Soft Credit
                else if(transType.contains(trans.AQB__Type__c)){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                     recordsProcessed = recordsProcessed + 1;   
                 }
+                //--Scenario 11.5 - Checks transaction type of anything besides what is included above
+                else{
+                    trans.MDA_Credit_Debit_Account_Error__c = true;
+                    recordsProcessed = recordsProcessed + 1; 
+                }
 
             }
-            // Checks Source of Data of Planned Giving Form / Documentation
-            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Planned Giving Form / Documentation'){
+            // Checks Source of Data of Pledge Form / Documentation
+            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation'){
                 //--Scenario 11.6 
                 if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
                       trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -252,14 +250,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              }
          
             		
-  //End of Scenario 0- Checks for Voided Transaction                 
+  //Checks for Voided Transaction                 
      }else{
          if(trans.AQB__Type__c == 'Grant Payment'){
           Id transId = trans.Id;
           Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
           Id gift = trans.AQB__Gift__c;
           AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
-             //Scenario 12 -- Corrected Transaction found for Grant Payment -Update
+             //Scenario 12 -- Transaction Type of Grant Payment with Corrected Transaction found 
              if(correctTrans.size() > 0){
                  for(AQB__Transaction__c trans2: correctTrans){
                      trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -304,7 +302,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  	}
                  
              	}else{
-                    //Scenario15
+                //Scenario15
       			 trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
                  trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
                  trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
