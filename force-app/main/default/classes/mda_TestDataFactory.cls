@@ -26,6 +26,17 @@ public class mda_TestDataFactory {
 			return acc;      
  		}
     
+    public static Contact createContact(String lastName, Id accountId, Boolean doInsert) {
+        Contact con = new Contact(
+                        LastName = lastName,
+                        AccountId = accountId,
+                        AQB__Type__c = 'Individual');
+        if(doInsert) {
+            insert con;
+        }
+            return con;      
+        }
+    
     public static AQB__Acknowledgement__c getAcknowledgement(){
         AQB__Acknowledgement__c ack = [Select Id from AQB__Acknowledgement__c LIMIT 1];
         return ack;
