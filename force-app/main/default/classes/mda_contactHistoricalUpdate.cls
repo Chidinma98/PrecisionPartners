@@ -12,7 +12,7 @@ global  class mda_contactHistoricalUpdate implements Database.Batchable<sObject>
    //Id batchId = Database.executeBatch(myBatchObject);
    //1746 records processed
     global Database.QueryLocator start(Database.BatchableContext BC) {  
-        String query = 'Select Id, AQB__AwardGiftCredit__c, lastName, AQB__PrimaryGiftRecognitionCredit_Percent__c, AQB__SecondaryGiftRecognitionCreditPercent__c, AQB__IsPrimaryContact__c from Contact WHERE AQB__PrimaryGiftRecognitionCredit_Percent__c =' + 0.00  + ' AND AQB__SecondaryGiftRecognitionCreditPercent__c =' + 0.00;
+        String query = 'Select Id, AQB__AwardGiftCredit__c, lastName, AQB__PrimaryGiftRecognitionCredit_Percent__c, AQB__SecondaryGiftRecognitionCreditPercent__c, AQB__IsPrimaryContact__c from Contact WHERE AQB__PrimaryGiftRecognitionCredit_Percent__c = 0 AND AQB__SecondaryGiftRecognitionCreditPercent__c = 0';
         if (Test.isRunningTest()){          
     		}
         return Database.getQueryLocator(query); 
@@ -33,13 +33,10 @@ global  class mda_contactHistoricalUpdate implements Database.Batchable<sObject>
             con.AQB__AwardGiftCredit__c = true;
 
         }
-        try{
+       
             Database.SaveResult[] results = Database.update(contactList, false);
-            system.debug('result List' + results);
-        }catch(Exception e){
-            System.debug(e.getMessage());
-
-        }
+          
+        
 
     }
     global void finish(Database.BatchableContext BC) {
