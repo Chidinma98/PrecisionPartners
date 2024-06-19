@@ -29,7 +29,7 @@
 global class mda_COAbatchUpdate implements Database.Batchable<sObject>{
  global Database.QueryLocator start(Database.BatchableContext BC) {
          
-        String query = 'SELECT Id, MDACC_COAExternalID__c, MDA_Clearing_Account__c, AQB__Active__c, AQB__DesignationAccountNumberGroupNine__c, AQB__Category__c, AQB__Restricted__c, AQB__Account_Type__c FROM AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c != NULL AND MDA_Clearing_Account__c = false ';
+        String query = 'SELECT Id, MDACC_COAExternalID__c, MDA_Clearing_Account__c, AQB__Active__c, AQB__DesignationAccountNumberGroupNine__c, AQB__Category__c, AQB__Restricted__c, AQB__Account_Type__c FROM AQB__LLChartofAccounts__c WHERE AQB__DesignationAccountNumberGroupTwo__c != NULL AND MDA_Clearing_Account__c = false ';
         return Database.getQueryLocator(query); 
     }
      
@@ -38,16 +38,26 @@ global class mda_COAbatchUpdate implements Database.Batchable<sObject>{
        
         for(AQB__LLChartofAccounts__c coa: coaList) {
             if(coa.AQB__Active__c){
-                if(coa.AQB__Category__c == 'Grant Fund'){
-                    coa.AQB__DesignationAccountNumberGroupNine__c = '10011';   
-                }if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c =='Current Operations' ){
+                //Unrestricted record with Account Type of Current Operations sets to '42511' 
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c =='Current Operations' ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '42511';  
-                }if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='Current Operations' ){
+                }
+                //Unrestricted record with NO Account Type sets to empty string
+                 if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == null && AQB__DesignationAccountNumberGroupNine__c != null ){
+                    coa.AQB__DesignationAccountNumberGroupNine__c = '';  
+                }
+                //Restricted record with Current Operations Account sets to '42521'
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='Current Operations' ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '42521';
+
+                //Restricted record with Capital Purposes Account sets to '46710'                    
                 }if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='Capital Purposes' ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '46710';
-                }if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='Endowment'){
-                    coa.AQB__DesignationAccountNumberGroupNine__c = '11323';
+                }
+                
+                //Restricted record with no Account Type sets to empty string  
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='' && coa.AQB__DesignationAccountNumberGroupNine__c != null){
+                    coa.AQB__DesignationAccountNumberGroupNine__c = '';
                     }
             } 
         }
