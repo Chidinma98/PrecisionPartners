@@ -43,7 +43,7 @@ global class mda_COAbatchUpdate implements Database.Batchable<sObject>{
                     coa.AQB__DesignationAccountNumberGroupNine__c = '42511';  
                 }
                 //Unrestricted record with NO Account Type sets to empty string
-                 if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == null && AQB__DesignationAccountNumberGroupNine__c != null ){
+                 if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == null && coa.AQB__DesignationAccountNumberGroupNine__c != null ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '';  
                 }
                 //Restricted record with Current Operations Account sets to '42521'
