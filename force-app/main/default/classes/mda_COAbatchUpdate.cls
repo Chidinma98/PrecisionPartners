@@ -38,12 +38,27 @@ global class mda_COAbatchUpdate implements Database.Batchable<sObject>{
        
         for(AQB__LLChartofAccounts__c coa: coaList) {
             if(coa.AQB__Active__c){
+                //Sets Grant Fund Category to Null
+                if(coa.AQB__Category__c == 'Grant Fund'){
+                    coa.AQB__DesignationAccountNumberGroupNine__c = '';
+                }
+
+                //Unrestricted record with Gift Fund and Account type of Endowment get set to empty string
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == 'Endowment' ){
+                    coa.AQB__DesignationAccountNumberGroupNine__c = '';  
+                }
+
                 //Unrestricted record with Account Type of Current Operations sets to '42511' 
                 if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c =='Current Operations' ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '42511';  
                 }
                 //Unrestricted record with NO Account Type sets to empty string
-                 if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == null && coa.AQB__DesignationAccountNumberGroupNine__c != null ){
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == false && coa.AQB__Account_Type__c == null && coa.AQB__DesignationAccountNumberGroupNine__c != null ){
+                    coa.AQB__DesignationAccountNumberGroupNine__c = '';  
+                }
+
+                //Restricted record with Gift Fund and Account type of Endowment get set to empty string
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true && coa.AQB__Account_Type__c == 'Endowment' ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '';  
                 }
                 //Restricted record with Current Operations Account sets to '42521'
