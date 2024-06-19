@@ -71,7 +71,7 @@ global class mda_COAbatchUpdate implements Database.Batchable<sObject>{
                 }
                 
                 //Restricted record with no Account Type sets to empty string  
-                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c =='' && coa.AQB__DesignationAccountNumberGroupNine__c != null){
+                if(coa.AQB__Category__c == 'Gift Fund' && coa.AQB__Restricted__c == true &&  coa.AQB__Account_Type__c ==null ){
                     coa.AQB__DesignationAccountNumberGroupNine__c = '';
                     }
             } 
