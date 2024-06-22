@@ -61,8 +61,10 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         for(AQB__Transaction__c trans: transList) {
         trans.MDA_Credit_Debit_Account_Error__c = false;
          //Check Posted Transaction and Batch Status
-         if(trans.AQB__FinancialSystemDate__c == NULL && trans.AQB__Batch__r.AQB__RecordTypeDeveloperName__c != 'ClosedBatch'){
-         //Check Voided Transaction
+         if(trans.AQB__FinancialSystemDate__c == NULL ){
+         //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to null
+         if(trans.AQB__Batch__r.AQB__RecordTypeDeveloperName__c != 'ClosedBatch'){
+          //Check Voided Transaction
          if(trans.AQB__VoidedTransaction__c == NULL){
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
@@ -384,9 +386,13 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
       
       }
     }
-                           
-              
- }
+
+//Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to true
+        else{
+            trans.MDA_Credit_Debit_Account_Error__c = true;  
+        }
+    }
+}
         
   Database.SaveResult[] results = Database.update(transList, false);
   Database.SaveResult[] results2 = Database.update(correctTransactions, false);
