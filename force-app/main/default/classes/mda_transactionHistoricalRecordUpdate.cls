@@ -29,7 +29,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
  
     global Database.QueryLocator start(Database.BatchableContext BC) {
         Set<String> testValues = getNum(33);
-        String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
+        String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
         if (Test.isRunningTest()){
         	//query += ' LIMIT 100';
             query += 'AND AQB__Reference__c IN :testValues LIMIT 100';
@@ -54,18 +54,31 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         Set<String> otherDataSource = new Set<String>{'Grants Management System','Gift in Kind Form / Documentation','Planned Giving Form / Documentation'};
         Set<String> transType = new Set<String>{ 'Grant', 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> transType2 = new Set<String>{ 'Soft Credit', 'Pledge Soft Credit'};
+        Set<String> pledgeOffset = new Set<String>{ 'Pledge', 'Grant'};
             
         List<AQB__Transaction__c> processedRecords = new List<AQB__Transaction__c>();
         List<AQB__Transaction__c> correctTransactions = new List<AQB__Transaction__c>();
         
         for(AQB__Transaction__c trans: transList) {
         trans.MDA_Credit_Debit_Account_Error__c = false;
-         //Check Posted Transaction and Batch Status
+        //Check Posted Transaction and Batch Status
          if(trans.AQB__FinancialSystemDate__c == NULL ){
-         //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to null
+        //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to null
          if(trans.AQB__Batch__r.AQB__RecordTypeDeveloperName__c != 'ClosedBatch'){
-          //Check Voided Transaction
+        //Check Voided Transaction
          if(trans.AQB__VoidedTransaction__c == NULL){
+        //Check for Pledge Offset - Yes
+        if((trans.AQB__PledgePayment__c == true && pledgeOffset.contains(trans.AQB__Type__c)) || (trans.AQB__ThirdPartyPayoff__c == true && pledgeOffset.contains(trans.AQB__Type__c))){
+            trans.AQB__Do_not_push_to_Accounting__c = false;
+            trans.AQB__FinancialSystemDate__c = null;
+            trans.MDA_Credit_AccountLookup__c = null;
+            trans.MDA_Debit_Account__c = null;
+            trans.MDA_GL_Posting_Type__c = null;
+            trans.MDA_Journal_ID__c = null;
+            trans.MDA_Original_Transaction__c = null;
+            trans.MDA_Related_Void_Transaction__c = null;
+        }else{  
+            //Check for Pledge Offset - No
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
             if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){  
@@ -267,6 +280,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 trans.AQB__Do_not_push_to_Accounting__c = true;
                  
              }
+
+        }
          
             		
   //Checks for Voided Transaction                 
