@@ -384,7 +384,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                   Id batchItem = trans.MDA_Batch_Item_ID2__c;
                   Id gift = trans.AQB__Gift__c;
                   String type = trans.AQB__Type__c;
-                  Integer paymentNumber = trans.AQB__PaymentNumber__c; 
+                  Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                   Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
                   AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
                   WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
@@ -421,7 +421,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                             Id batchItem = trans.MDA_Batch_Item_ID2__c;
                             Id gift = trans.AQB__Gift__c;
                             String type = trans.AQB__Type__c;
-                            Integer paymentNumber = trans.AQB__PaymentNumber__c; 
+                            Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                             Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
                             AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
                             WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
@@ -444,13 +444,20 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
              else if(trans.AQB__PledgePayment__c == false){
                 //Scenario 28 - Transaction Type of Payment with NO adjusted pledge payment 
                 //AND corrected transaction found
-          		Id transId = trans.Id;
-          		Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
-          		Id gift = trans.AQB__Gift__c;
-          		AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                Id transId = trans.Id;
+                Id batchItem = trans.MDA_Batch_Item_ID2__c;
+                Id gift = trans.AQB__Gift__c;
+                String type = trans.AQB__Type__c;
+                Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
+                Boolean pledgePayment = trans.AQB__PledgePayment__c; 
+          		AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
+                WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
+                AND AQB__Type__c = :type];  
              		if(trans.AQB__PledgePayment__c == false && correctTrans.size() > 0){
                  		for(AQB__Transaction__c trans2: correctTrans){
          				trans.AQB__Do_not_push_to_Accounting__c = true;
+                        trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
+                        trans2.MDA_Related_Void_Transaction__c = transId;
                      	trans2.MDA_Credit_Account_Number__c = trans2.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
                      	trans2.MDA_Credit_AccountLookup__c = trans2.AQB__ChartofAccounts__c;
                      	trans2.MDA_Debit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
@@ -479,24 +486,59 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             trans.AQB__Do_not_push_to_Accounting__c = true;
          }
          
-         //Scenario 32- Checks the Trandaction type of PLEDGE for voided transactions 
-         else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Unconditional'){
-             trans.MDA_GL_Posting_Type__c = 'Manual';    
+         //Check Type of Plegde
+         else if(trans.AQB__Type__c == 'Pledge' || trans.AQB__Type__c == 'Statement of Intent'){
+             if (trans.AQB__PledgeStipulation__c == 'Conditional'){
+                trans.AQB__Do_not_push_to_Accounting__c = true;  
+             } else if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
+                //GET RECORDS
+                Id transId = trans.Id;
+                Id batchItem = trans.MDA_Batch_Item_ID2__c;
+                Id gift = trans.AQB__Gift__c;
+                String type = trans.AQB__Type__c;
+                Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
+                Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
+                AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
+                WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
+                AND AQB__Type__c = :type AND AQB__PaymentNumber__c > :paymentNumber AND AQB__PledgePayment__c = :pledgePayment];  
+                if(correctTrans.size() > 0){
+                    for(AQB__Transaction__c trans2: correctTrans){
+                        trans.AQB__Do_not_push_to_Accounting__c = true;
+                        trans2.MDA_GL_Posting_Type__c = 'Manual';
+                        trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
+                        trans2.MDA_Related_Void_Transaction__c = transId;
+                        correctTransactions.add(trans2);
+                        recordsProcessed = recordsProcessed + 1;    
+                    } 
+                }else{
+                    trans.MDA_GL_Posting_Type__c = 'Manual';
+                } 
+
+            }else{
+             trans.MDA_Credit_Debit_Account_Error__c = true;
+            }
+
              
-         }//Scenario 33- Checks the Trandaction type of anything but what is above
-         else {
-            trans.MDA_Credit_Debit_Account_Error__c = true;  
+         }
+         //Check Property
+         else if (trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) {
+            trans.AQB__Do_not_push_to_Accounting__c = true;  
             
+        }
+        //After Checking It Is Not Soft Credit OR ANYTHING ABOVE
+        else if (!transType2.contains(trans.AQB__Type__c )){
+            trans.MDA_Credit_Debit_Account_Error__c = true;
         }
       
       }
     }
 
 //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to true
-        else{
+   else{
             trans.MDA_Credit_Debit_Account_Error__c = true;  
         }
     }
+
 }
         
   Database.SaveResult[] results = Database.update(transList, false);
