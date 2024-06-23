@@ -83,7 +83,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             //Scenario 1- Annual Fund Source of Data with PAYMENT
             if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
                     if(trans.AQB__Type__c == 'Payment'){ 
-                        if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c =! 'Automated'){
+                        if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
                         } else {
                             trans.AQB__DebitAccount__c = coa[0].Id;
@@ -110,7 +110,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 if(trans.AQB__Type__c == 'Grant Payment'){
                     //Check Source of Data Validation
                     if(sourceDataValidation.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
-                       if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c =! 'Automated'){
+                       if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
                        }else{
                             trans.AQB__DebitAccount__c = coa3[0].Id;
@@ -134,7 +134,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     
                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional' ){
                         if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c =! 'Automated'){
+                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
 
                             }else{
