@@ -104,7 +104,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                      }
                    
         	}
-            
+            //Checks GL Data Sources
              else if(dataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c) == true){
                 //Check Payment Type - Grant Payment
                 if(trans.AQB__Type__c == 'Grant Payment'){
@@ -238,26 +238,40 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     
                 }
                //--Check for matching Gift
-               else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgePayment__c == false && trans.AQB__Gift__r.AQB__MatchLink__r.Id =! null){
+               else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgePayment__c == false && trans.AQB__Gift__r.AQB__MatchLink__r.Id != null){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                     recordsProcessed = recordsProcessed + 1;   
                 }
-                //--Scenario 20 - Checks transaction type of anything besides what is included above
-                else{
-                    system.debug('Enters Scenario 20');
+                //--
+                else if(!transType2.contains(trans.AQB__Type__c))
+                {
                     trans.MDA_Credit_Debit_Account_Error__c = true;
-                    recordsProcessed = recordsProcessed + 1; 
-                 
+                    recordsProcessed = recordsProcessed + 1;               
                 }
-
             }
+            //Checks Non GL Data Sources
+            else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
+                //Check Gift in Kind
+                        if(trans.AQB__Type__c = 'Payment' && (trans.AQB__Method__c = 'Personal Property' || trans.AQB__Method__c = 'Real Property')){
+                            //Check Data Validity
+                            if(trans.AQB__Batch__r.AQB__SourceofData__c = 'Gift in Kind Form / Documentation'){
+                                //CONFIRM LOGIC
+                                trans.MDA_Credit_Debit_Account_Error__c = true;
+                                trans.AQB__Do_not_push_to_Accounting__c = true;
+                                //CONFIRM LOGIC
+
+                            }else{
+                                trans.MDA_Credit_Debit_Account_Error__c = true;
+                            }
+                        }
+             }
+        
             // Checks Source of Data of Pledge Form / Documentation
             else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation'){
                 //--Scenario 21 
                 if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
                       trans.AQB__Do_not_push_to_Accounting__c = true;
-                      recordsProcessed = recordsProcessed + 1;
-                    
+                      recordsProcessed = recordsProcessed + 1;               
                 } 
                 //--Scenario 22
                 else if(trans.AQB__PledgeStipulation__c == 'Conditional'){
@@ -265,11 +279,6 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                      recordsProcessed = recordsProcessed + 1;
                     
                 }
-                 
-             }
-            //--Scenario 23 - Checks Other Source of Data
-            else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
-                trans.AQB__Do_not_push_to_Accounting__c = true;
                  
              }
 
