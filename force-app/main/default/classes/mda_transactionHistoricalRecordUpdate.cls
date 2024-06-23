@@ -28,7 +28,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
  
     global Database.QueryLocator start(Database.BatchableContext BC) {
         Set<String> testValues = getNum(33);
-        String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__Gift__r.AQB__Instrument__c,  AQB__Gift__r.AQB__MatchLink__r.Id, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
+        String query = 'Select Id, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__Instrument__c, AQB__Gift__r.AQB__Instrument__c,  AQB__Gift__r.AQB__MatchLink__r.Id, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c,	MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
         if (Test.isRunningTest()){
         	//query += ' LIMIT 100';
             query += 'AND AQB__Reference__c IN :testValues LIMIT 100';
@@ -54,6 +54,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         Set<String> transType = new Set<String>{ 'Grant', 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> transType2 = new Set<String>{ 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> pledgeOffset = new Set<String>{ 'Pledge', 'Grant'};
+        Set<String> propertyType = new Set<String>{ 'Real Property', 'Personal Property'};
         Set<String> sourceDataValidation = new Set<String>{'Institutional Lockbox', 'Live Check / Credit Card (MD Anderson Front Office)', 'MDA Treasury'};
             
         List<AQB__Transaction__c> processedRecords = new List<AQB__Transaction__c>();
@@ -293,19 +294,70 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         
             // Checks Source of Data of Pledge Form / Documentation
             else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation'){
-                //--Scenario 21 
-                if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
-                      trans.AQB__Do_not_push_to_Accounting__c = true;
-                      recordsProcessed = recordsProcessed + 1;               
-                } 
-                //--Scenario 22
-                else if(trans.AQB__PledgeStipulation__c == 'Conditional'){
-                     trans.MDA_GL_Posting_Type__c = 'Manual';
-                     recordsProcessed = recordsProcessed + 1;
-                    
+                if(trans.AQB__Type__c != 'Pledge Soft Credit' || trans.AQB__Type__c != 'Pledge' ){
+                    trans.MDA_Credit_Debit_Account_Error__c = true;
+
                 }
+                else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__Instrument__c == null){
+                       //--Scenario 21 
+                        if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
+                            trans.MDA_GL_Posting_Type__c = 'Manual';
+                            recordsProcessed = recordsProcessed + 1;               
+                        } 
+                        //--Scenario 22
+                        else if(trans.AQB__PledgeStipulation__c == 'Conditional' || trans.AQB__PledgeStipulation__c == 'Statement of Intent' ){
+                            trans.AQB__Do_not_push_to_Accounting__c = true;
+                            recordsProcessed = recordsProcessed + 1;
+                            
+                        } else {
+                            trans.MDA_Credit_Debit_Account_Error__c = true;
+                        }
+                    }
                  
              }
+            //Checks for Adjustment
+            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Adjustments'){
+                //Check Gift in Kind
+                //Check Grant/Grant Payment
+                //Check Conditinal Pledge
+                if((trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) ||
+                   (trans.AQB__Type__c = 'Payment' || trans.AQB__Type__c = 'Grant Payment') ||
+                   (trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__PledgePayment__c == false))
+                {
+                    trans.AQB__Do_not_push_to_Accounting__c = false;
+                    trans.AQB__FinancialSystemDate__c = null;
+                    trans.MDA_Credit_AccountLookup__c = null;
+                    trans.MDA_Debit_Account__c = null;
+                    trans.MDA_GL_Posting_Type__c = null;
+                    trans.MDA_Journal_ID__c = null;
+                    trans.MDA_Original_Transaction__c = null;
+                    trans.MDA_Related_Void_Transaction__c = null;
+                } else if (trans.AQB__Type__c != 'Soft Credit' || trans.AQB__Type__c != 'Pledge Soft Credit'){
+                    //GET RECORDS
+                    Id transId = trans.Id;
+                    Id batchItem = trans.MDA_Batch_Item_ID2__c;
+                    Id gift = trans.AQB__Gift__c;
+                    String type = trans.AQB__Type__c;                    
+                    AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
+                    AND AQB__VoidedTransaction__c != null AND AQB__Type__c = :type];  
+                    if(correctTrans.size() == 0){
+                        for(AQB__Transaction__c trans2: correctTrans){
+                            trans.MDA_Credit_Debit_Account_Error__c = true;
+                            recordsProcessed = recordsProcessed + 1;
+                           
+       
+                        }
+                      
+                    }
+                    
+
+
+
+
+
+                }
+
+            }
 
         }
          
