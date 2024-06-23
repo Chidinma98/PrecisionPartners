@@ -22,7 +22,6 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             container.add(num2);
             }
             container.add('correctTrans');
-            System.debug(container); 
         return container; 
     }
   
@@ -55,6 +54,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         Set<String> transType = new Set<String>{ 'Grant', 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> transType2 = new Set<String>{ 'Soft Credit', 'Pledge Soft Credit'};
         Set<String> pledgeOffset = new Set<String>{ 'Pledge', 'Grant'};
+        Set<String> sourceDataValidation = new Set<String>{'Institutional Lockbox', 'Live Check / Credit Card (MD Anderson Front Office)', 'MDA Treasury'};
             
         List<AQB__Transaction__c> processedRecords = new List<AQB__Transaction__c>();
         List<AQB__Transaction__c> correctTransactions = new List<AQB__Transaction__c>();
@@ -81,59 +81,50 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             //Check for Pledge Offset - No
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
-            if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){  
+            if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
                     if(trans.AQB__Type__c == 'Payment'){ 
-                       trans.AQB__DebitAccount__c = coa[0].Id;
-                       trans.MDA_Debit_Account__c = coa[0].Id;
-                       trans.MDA_Debit_Account_Number__c = coa[0].AQB__DesignationAccountNumber__c;
-                       trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                       trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                       trans.MDA_GL_Posting_Type__c = 'Automated';
-                       recordsProcessed = recordsProcessed + 1;
+                        if(MDA_Credit_AccountLookup__c == null || MDA_Debit_Account__c == null || MDA_GL_Posting_Type__c =! 'Automated'){
+                            MDA_Credit_Debit_Account_Error__c = true;
+                        } else {
+                            trans.AQB__DebitAccount__c = coa[0].Id;
+                            trans.MDA_Debit_Account__c = coa[0].Id;
+                            trans.MDA_Debit_Account_Number__c = coa[0].AQB__DesignationAccountNumber__c;
+                            trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                            trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
+                            trans.MDA_GL_Posting_Type__c = 'Automated';
+                            recordsProcessed = recordsProcessed + 1;
+                        }
                    
                     }
                 //Scenario 2 - Source of Data Annual Fund with Transaction Type of 'Soft Credit' and 'Pledge Soft Credit'
-                	 else if(transType2.contains(trans.AQB__Type__c)){
-                         trans.AQB__Do_not_push_to_Accounting__c = true;
+                	 else if(transType2.contains(trans.AQB__Type__c) == false){
+                         trans.MDA_Credit_Debit_Account_Error__c = true;
                          recordsProcessed = recordsProcessed + 1;
                        
                      }
-                //Scenario 3 - Source of Data with Transaction Type of Anything besides Payment, Soft Credit and Pledge Soft Credit
-                	 else{
-                     	trans.MDA_Credit_Debit_Account_Error__c = true;
-                         recordsProcessed = recordsProcessed + 1;
-                      
-                	}
                    
         	}
             
              else if(dataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c) == true){
                 //Check Payment Type - Grant Payment
                 if(trans.AQB__Type__c == 'Grant Payment'){
-                    //Scenario 4 = Transaction Type of Grant Payment with method of Check, ACH, Wire, ACH/Wire
-                    if(paymentMethod3.contains(trans.AQB__Method__c)){
-                   	   trans.AQB__DebitAccount__c = coa3[0].Id;
-                       trans.MDA_Debit_Account__c = coa3[0].Id;
-                       trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
-                       trans.MDA_Credit_AccountLookup__c  = trans.AQB__ChartofAccounts__c;
-                       trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c; 
-                       trans.MDA_GL_Posting_Type__c = 'Automated';
-                       recordsProcessed = recordsProcessed + 1;
-                       
-                    } 
-         
-                    //Scenario 5 - Checks Transaction Type of Soft Credit                   
-                    else if(trans.AQB__Method__c == 'Soft Credit'){
-                        trans.AQB__Do_not_push_to_Accounting__c = true;
-                        recordsProcessed = recordsProcessed + 1;
-                    	}
-                    //Scenario 6 - Checks Transaction Type of anything besides Soft Credit, Check, ACH, Wire, ACH/Wire  
-                    else {
-                        trans.MDA_Credit_Debit_Account_Error__c = true;
-                        recordsProcessed = recordsProcessed + 1; 
+                    //Check Source of Data Validation
+                    if(sourceDataValidation.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
+                       if(MDA_Credit_AccountLookup__c == null || MDA_Debit_Account__c == null || MDA_GL_Posting_Type__c =! 'Automated'){
+                            MDA_Credit_Debit_Account_Error__c = true;
+                       }else{
+                            trans.AQB__DebitAccount__c = coa3[0].Id;
+                            trans.MDA_Debit_Account__c = coa3[0].Id;
+                            trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
+                            trans.MDA_Credit_AccountLookup__c  = trans.AQB__ChartofAccounts__c;
+                            trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c; 
+                            trans.MDA_GL_Posting_Type__c = 'Automated';
+                            recordsProcessed = recordsProcessed + 1;
+                    }
+                      
                     }
                      
-                	}
+                }
             	//Check Payment Type - Payment 
             	  
                 else if(trans.AQB__Type__c == 'Payment'){
