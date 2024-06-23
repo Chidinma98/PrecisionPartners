@@ -252,9 +252,9 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             //Checks Non GL Data Sources
             else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
                 //Check Gift in Kind
-                        if(trans.AQB__Type__c = 'Payment' && (trans.AQB__Method__c = 'Personal Property' || trans.AQB__Method__c = 'Real Property')){
+                        if(trans.AQB__Type__c == 'Payment' && (trans.AQB__Method__c == 'Personal Property' || trans.AQB__Method__c == 'Real Property')){
                             //Check Data Validity
-                            if(trans.AQB__Batch__r.AQB__SourceofData__c = 'Gift in Kind Form / Documentation'){
+                            if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Gift in Kind Form / Documentation'){
                                 //CONFIRM LOGIC
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 trans.AQB__Do_not_push_to_Accounting__c = true;
