@@ -321,7 +321,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 //Check Grant/Grant Payment
                 //Check Conditinal Pledge
                 if((trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) ||
-                   (trans.AQB__Type__c = 'Payment' || trans.AQB__Type__c = 'Grant Payment') ||
+                   (trans.AQB__Type__c == 'Payment' || trans.AQB__Type__c == 'Grant Payment') ||
                    (trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__PledgePayment__c == false))
                 {
                     trans.AQB__Do_not_push_to_Accounting__c = false;
