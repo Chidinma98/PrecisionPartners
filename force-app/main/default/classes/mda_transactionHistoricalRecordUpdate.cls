@@ -157,6 +157,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                             }else {
                                 trans.AQB__DebitAccount__c = coa2[0].Id;
                                 trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -169,6 +170,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                          
                        } else {
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                        }           
                         
                     }
@@ -177,6 +179,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                         if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Manual'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                             }else{
                                 trans.AQB__DebitAccount__c = coa3[0].Id;
                                 trans.MDA_Debit_Account__c = coa3[0].Id;
@@ -269,6 +272,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 //CONFIRM LOGIC
                             }else{
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                             }         
                         }
                 //Check Type of Grant / Grant Payment
@@ -281,6 +285,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                  //CONFIRM LOGIC
                             } else {
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                             }
 
                         }
@@ -295,6 +300,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
                             }else{
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
+                                recordsProcessed = recordsProcessed + 1; 
                             }
                         }
              }
@@ -303,6 +309,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation'){
                 if(trans.AQB__Type__c != 'Pledge Soft Credit' || trans.AQB__Type__c != 'Pledge' ){
                     trans.MDA_Credit_Debit_Account_Error__c = true;
+                    recordsProcessed = recordsProcessed + 1; 
 
                 }
                 else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__Instrument__c == null){
@@ -438,6 +445,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                             
                             }else{
                                 trans.MDA_GL_Posting_Type__c = 'Manual';
+                                recordsProcessed = recordsProcessed + 1; 
                             }  
                 }
              
@@ -484,12 +492,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         //Scenario 31 - Checks Transaction Type of either Grant, Soft Credit and Pledge Soft Credit
          else if(transType.contains(trans.AQB__Type__c) == true){
             trans.AQB__Do_not_push_to_Accounting__c = true;
+            recordsProcessed = recordsProcessed + 1; 
          }
          
          //Check Type of Plegde
          else if(trans.AQB__Type__c == 'Pledge' || trans.AQB__Type__c == 'Statement of Intent'){
              if (trans.AQB__PledgeStipulation__c == 'Conditional'){
-                trans.AQB__Do_not_push_to_Accounting__c = true;  
+                trans.AQB__Do_not_push_to_Accounting__c = true;
+                recordsProcessed = recordsProcessed + 1;   
              } else if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
                 //GET RECORDS
                 Id transId = trans.Id;
@@ -512,22 +522,26 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     } 
                 }else{
                     trans.MDA_GL_Posting_Type__c = 'Manual';
+                    recordsProcessed = recordsProcessed + 1; 
                 } 
 
             }else{
              trans.MDA_Credit_Debit_Account_Error__c = true;
+             recordsProcessed = recordsProcessed + 1; 
             }
 
              
          }
          //Check Property
          else if (trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) {
-            trans.AQB__Do_not_push_to_Accounting__c = true;  
+            trans.AQB__Do_not_push_to_Accounting__c = true;
+            recordsProcessed = recordsProcessed + 1;   
             
         }
         //After Checking It Is Not Soft Credit OR ANYTHING ABOVE
         else if (!transType2.contains(trans.AQB__Type__c )){
             trans.MDA_Credit_Debit_Account_Error__c = true;
+            recordsProcessed = recordsProcessed + 1; 
         }
       
       }
@@ -535,7 +549,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
 //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to true
    else{
-            trans.MDA_Credit_Debit_Account_Error__c = true;  
+            trans.MDA_Credit_Debit_Account_Error__c = true;
+            recordsProcessed = recordsProcessed + 1;   
         }
     }
 
