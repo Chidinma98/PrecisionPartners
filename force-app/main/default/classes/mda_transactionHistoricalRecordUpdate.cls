@@ -84,6 +84,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
             if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
+                trans.AQB__DebitAccount__c = null;
+                trans.MDA_Debit_Account__c = null;
+                trans.MDA_Debit_Account_Number__c = null;
+                trans.MDA_Credit_AccountLookup__c = null;
+                trans.MDA_Credit_Account_Number__c = null;
+                trans.MDA_GL_Posting_Type__c = null;
                     if(trans.AQB__Type__c == 'Payment'){ 
                         if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -555,9 +561,19 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
     }
 
 }
+
+    Set<AQB__Transaction__c> myset = new Set<AQB__Transaction__c>();
+    List<AQB__Transaction__c> result = new List<AQB__Transaction__c>();
+    myset.addAll(transList);
+    result.addAll(myset);
+
+    Set<AQB__Transaction__c> myset2 = new Set<AQB__Transaction__c>();
+    List<AQB__Transaction__c> result2 = new List<AQB__Transaction__c>();
+    myset2.addAll(correctTransactions);
+    result2.addAll(myset2);
         
-  Database.SaveResult[] results = Database.update(transList, false);
-  Database.SaveResult[] results2 = Database.update(correctTransactions, false);
+  Database.SaveResult[] results = Database.update(result, false);
+  Database.SaveResult[] results2 = Database.update(result2, false);
   
 
          
