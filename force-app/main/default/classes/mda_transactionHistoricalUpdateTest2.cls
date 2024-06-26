@@ -126,7 +126,10 @@ static testmethod void annualFundwithPaymentnotNull(){
     trans1.AQB__Acknowledgement__c = ack.Id; 
     trans1.AQB__ChartofAccounts__c = aoc.Id;
     trans1.AQB__Type__c = 'Payment';
-    trans1.MDA_GL_Posting_Type__c = 'Automated';  
+    trans1.MDA_GL_Posting_Type__c = 'Automated';
+    trans1.MDA_Credit_AccountLookup__c = coa.Id;
+    trans1.MDA_Debit_Account__c= coa.Id ;
+
 
     insert trans1;
           
