@@ -1,0 +1,9 @@
+Select Id, AQB__SourceofData__c, AQB__DebitAccount__c, MDA_Debit_Account__c,
+ MDA_Credit_AccountLookup__c, 	AQB__ACHLastFour__c,  AQB__Type__c, 
+ MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c from AQB__Transaction__c 
+ WHERE CreatedDate >= 2023-10-17T19:00:00Z
+ AND AQB__FinancialSystemDate__c = NULL
+ AND AQB__Batch__r.AQB__RecordTypeDeveloperName__c = 'ClosedBatch'
+ AND AQB__VoidedTransaction__c = NULL
+ AND AQB__SourceofData__c = 'Annual Fund Lockbox'
+ AND AQB__Type__c != 'Payment'

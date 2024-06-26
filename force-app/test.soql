@@ -1,3 +1,5 @@
+
+
 Select Id, AQB__DebitAccount__c, MDA_Debit_Account__c,
 MDA_Credit_AccountLookup__c,  AQB__Type__c, 
 MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c from AQB__Transaction__c 

@@ -11,6 +11,7 @@ public class mda_transactionHistoricalUpdateTest2 {
 /**
  * @description:Scenario 1
  * @Comments: Check situation where Batch Source of Data is "Annual Fund Lockbox" and Transaction Type is "Payment"
+ * Data source of "Annual Fund" with Type 
 **/     
     static testmethod void scenario1(){
         //ADD BATCH DATA
@@ -71,7 +72,7 @@ public class mda_transactionHistoricalUpdateTest2 {
         AQB__Transaction__c trans1 = new AQB__Transaction__c();
         trans1.AQB__Account__c = acc.Id; 
         trans1.AQB__Date__c = date.today();
-        trans1.AQB__Reference__c= '2';
+        trans1.AQB__Reference__c= '1';
         trans1.AQB__Type__c = 'Soft Credit'; 
 		trans1.AQB__Batch__c = batch.Id;
         trans1.AQB__VoidedTransaction__c = NULL;
@@ -86,7 +87,7 @@ public class mda_transactionHistoricalUpdateTest2 {
         Test.stopTest();  
         
         AQB__Transaction__c uTrans1 =[Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Credit_Debit_Account_Error__c  FROM AQB__Transaction__c WHERE 
-        AQB__Reference__c= '2' LIMIT 1];       
+        AQB__Reference__c= '1' LIMIT 1];       
         System.assertEquals(uTrans1.AQB__Do_not_push_to_Accounting__c, True);
 
    	

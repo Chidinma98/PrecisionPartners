@@ -38,7 +38,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
     }
      
     global void execute(Database.BatchableContext BC, List<	AQB__Transaction__c> transList) {
-      AQB__LLChartofAccounts__c[] coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108380-19-11324'];
+      AQB__LLChartofAccounts__c[] coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324'];
       AQB__LLChartofAccounts__c[] coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19'];
       AQB__LLChartofAccounts__c[] coa3 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90'];  
       
@@ -79,17 +79,13 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             trans.MDA_Original_Transaction__c = null;
             trans.MDA_Related_Void_Transaction__c = null;
             recordsProcessed = recordsProcessed + 1;
+
         }else{  
             //Check for Pledge Offset - No
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
             if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
-                trans.AQB__DebitAccount__c = null;
-                trans.MDA_Debit_Account__c = null;
-                trans.MDA_Debit_Account_Number__c = null;
-                trans.MDA_Credit_AccountLookup__c = null;
-                trans.MDA_Credit_Account_Number__c = null;
-                trans.MDA_GL_Posting_Type__c = null;
+                
                     if(trans.AQB__Type__c == 'Payment'){ 
                         if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -356,12 +352,18 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     recordsProcessed = recordsProcessed + 1;
                 } else if (trans.AQB__Type__c != 'Soft Credit' || trans.AQB__Type__c != 'Pledge Soft Credit'){
                     //GET RECORDS
+                    //GL Adjustments
+                    //Adjustments with NO Voided Transaction
                     Id transId = trans.Id;
                     Id batchItem = trans.MDA_Batch_Item_ID2__c;
                     Id gift = trans.AQB__Gift__c;
                     String type = trans.AQB__Type__c;                    
-                    AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
-                    AND AQB__VoidedTransaction__c != null AND AQB__Type__c = :type];  
+                    AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE 
+                    AQB__Gift__c = :gift 
+                    AND MDA_Batch_Item_ID2__c = :batchItem 
+                    AND Id != :transId
+                    AND AQB__VoidedTransaction__c != null 
+                    AND AQB__Type__c = :type];
                     if(correctTrans.size() == 0){
                         for(AQB__Transaction__c trans2: correctTrans){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -400,8 +402,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                   Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                   Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
                   AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                  WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
-                  AND AQB__Type__c = :type AND AQB__PaymentNumber__c > :paymentNumber AND AQB__PledgePayment__c = :pledgePayment]; 
+                  WHERE AQB__Gift__c = :gift 
+                  AND MDA_Batch_Item_ID2__c = :batchItem 
+                  AND Id != :transId
+                  AND AQB__Type__c = :type 
+                  AND AQB__PaymentNumber__c > :paymentNumber 
+                  AND AQB__PledgePayment__c = :pledgePayment]; 
                             
                   if(correctTrans.size() > 0){
                                 for(AQB__Transaction__c trans2: correctTrans){
@@ -465,7 +471,9 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                 Boolean pledgePayment = trans.AQB__PledgePayment__c; 
           		AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
+                WHERE AQB__Gift__c = :gift 
+                AND MDA_Batch_Item_ID2__c = :batchItem 
+                AND Id != :transId
                 AND AQB__Type__c = :type];  
              		if(trans.AQB__PledgePayment__c == false && correctTrans.size() > 0){
                  		for(AQB__Transaction__c trans2: correctTrans){
@@ -515,8 +523,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                 Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
                 AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
-                AND AQB__Type__c = :type AND AQB__PaymentNumber__c > :paymentNumber AND AQB__PledgePayment__c = :pledgePayment];  
+                WHERE AQB__Gift__c = :gift 
+                AND MDA_Batch_Item_ID2__c = :batchItem 
+                AND Id != :transId
+                AND AQB__Type__c = :type 
+                AND AQB__PaymentNumber__c > :paymentNumber 
+                AND AQB__PledgePayment__c = :pledgePayment];  
                 if(correctTrans.size() > 0){
                     for(AQB__Transaction__c trans2: correctTrans){
                         trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -562,18 +574,20 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
 }
 
-    Set<AQB__Transaction__c> myset = new Set<AQB__Transaction__c>();
-    List<AQB__Transaction__c> result = new List<AQB__Transaction__c>();
-    myset.addAll(transList);
-    result.addAll(myset);
+    // Set<AQB__Transaction__c> myset = new Set<AQB__Transaction__c>();
+    // List<AQB__Transaction__c> result = new List<AQB__Transaction__c>();
+    // myset.addAll(transList);
+    // result.addAll(myset);
 
-    Set<AQB__Transaction__c> myset2 = new Set<AQB__Transaction__c>();
-    List<AQB__Transaction__c> result2 = new List<AQB__Transaction__c>();
-    myset2.addAll(correctTransactions);
-    result2.addAll(myset2);
-        
-  Database.SaveResult[] results = Database.update(result, false);
-  Database.SaveResult[] results2 = Database.update(result2, false);
+    // Set<AQB__Transaction__c> myset2 = new Set<AQB__Transaction__c>();
+    // List<AQB__Transaction__c> result2 = new List<AQB__Transaction__c>();
+    // myset2.addAll(correctTransactions);
+    // result2.addAll(myset2);
+  
+  System.debug(transList.size() +'=====TRANSLIST BATCH SIZE====' + JSON.serializePretty(transList));
+  Database.SaveResult[] results = Database.update(transList, false);
+  System.debug(correctTransactions.size() +'===== CorrectTrans BATCH SIZE ====' + JSON.serializePretty(correctTransactions));
+  Database.SaveResult[] results2 = Database.update(correctTransactions, false);
   
 
          

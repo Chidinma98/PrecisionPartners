@@ -1,0 +1,7 @@
+Select Id, AQB__Do_not_push_to_Accounting__c,
+AQB__FinancialSystemDate__c, MDA_Credit_AccountLookup__c,
+MDA_Debit_Account__c, MDA_GL_Posting_Type__c,
+MDA_Journal_ID__c, MDA_Original_Transaction__c,
+MDA_Related_Void_Transaction__c from AQB__Transaction__c 
+WHERE CreatedDate >= 2023-10-17T19:00:00Z
+AND ID = 'a2EVa0000003614MAA'
