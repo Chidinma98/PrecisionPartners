@@ -87,12 +87,13 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
             //Check Source of Data - Annual Fund 
             //Scenario 1- Annual Fund Source of Data with PAYMENT
             if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
-                
+                //Source of Data with Transaction Type of "Payment" and NULL values
                     if(trans.AQB__Type__c == 'Payment'){ 
                         if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                             trans.MDA_Credit_Debit_Account_Error__c = true;
                             recordsProcessed = recordsProcessed + 1;
                         } else {
+                            //Source of Data with Transaction Type of "Payment" and NON NULL values
                             trans.AQB__DebitAccount__c = coa[0].Id;
                             trans.MDA_Debit_Account__c = coa[0].Id;
                             trans.MDA_Debit_Account_Number__c = coa[0].AQB__DesignationAccountNumber__c;
@@ -103,7 +104,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                         }
                    
                     }
-                //Scenario 2 - Source of Data Annual Fund with Transaction Type of 'Soft Credit' and 'Pledge Soft Credit'
+                //Scenario 2 - Source of Data Annual Fund with Transaction Type of anything but  'Soft Credit' and 'Pledge Soft Credit'
                 	 else if(transType2.contains(trans.AQB__Type__c) == false){
                          trans.MDA_Credit_Debit_Account_Error__c = true;
                          recordsProcessed = recordsProcessed + 1;

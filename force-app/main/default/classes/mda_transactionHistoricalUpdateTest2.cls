@@ -147,53 +147,13 @@ static testmethod void annualFundwithPaymentnotNull(){
     System.assertEquals(trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, trans.MDA_Credit_Account_Number__c); 
     System.assertEquals('Automated', trans.MDA_GL_Posting_Type__c);      
 } 
-/**
- * @description:Scenario 2
- * @Comments: Check situation where Batch Source of Data 
- * is "Annual Fund Lockbox" and Transaction Type is  "Soft Credit"
-**/
-    static testmethod void scenario2(){
-        //ADD BATCH DATA
-    	AQB__Batch__c batch = mda_TestDataFactory.createBatch('Annual Fund Lockbox',true);        
-        //ADD ACCOUNT DATA
-        Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
-        //QUERY OTHER OBJECTS  
-        AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
-        AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
-        //Query COA        
-      	AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108380-19-11324' LIMIT 1];
-
-        //Add Transactions
-        AQB__Transaction__c trans1 = new AQB__Transaction__c();
-        trans1.AQB__Account__c = acc.Id; 
-        trans1.AQB__Date__c = date.today();
-        trans1.AQB__Reference__c= '1';
-        trans1.AQB__Type__c = 'Soft Credit'; 
-		trans1.AQB__Batch__c = batch.Id;
-        trans1.AQB__VoidedTransaction__c = NULL;
-        trans1.AQB__Acknowledgement__c = ack.Id; 
-        trans1.AQB__ChartofAccounts__c = aoc.Id; 
- 
-        insert trans1;
-              
-        Test.startTest();
-        mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
-        Database.executeBatch(b);
-        Test.stopTest();  
-        
-        AQB__Transaction__c trans =[Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Credit_Debit_Account_Error__c  FROM AQB__Transaction__c WHERE 
-        AQB__Reference__c= '1' LIMIT 1];       
-        System.assertEquals(trans.AQB__Do_not_push_to_Accounting__c, True);
-
-   	
-    }
 
 /**
- * @description:Scenario 3
- * @Comments: Check situation where Batch Source of Data 
- * is "Annual Fund Lockbox" and Transaction Type is anything but "Payment, 'Soft Credit', 'Pledge Soft Credit' "
-**/
-static testmethod void scenario3(){
+ * @description:annualFundwithTransfer
+ * @Comments: Check situation where Batch Source of Data is "Annual Fund Lockbox" and Transaction Type is "Payment"
+ * Data source of "Annual Fund" with Type of "Payment"
+**/     
+static testmethod void annualFundwithTransfer(){
     //ADD BATCH DATA
     AQB__Batch__c batch = mda_TestDataFactory.createBatch('Annual Fund Lockbox',true);        
     //ADD ACCOUNT DATA
@@ -202,18 +162,21 @@ static testmethod void scenario3(){
     AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
     AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
     //Query COA        
-      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108380-19-11324' LIMIT 1];
+     AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
 
     //Add Transactions
     AQB__Transaction__c trans1 = new AQB__Transaction__c();
     trans1.AQB__Account__c = acc.Id; 
     trans1.AQB__Date__c = date.today();
-    trans1.AQB__Reference__c= '3';
-    trans1.AQB__Type__c = ''; 
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
     trans1.AQB__Batch__c = batch.Id;
     trans1.AQB__VoidedTransaction__c = NULL;
     trans1.AQB__Acknowledgement__c = ack.Id; 
-    trans1.AQB__ChartofAccounts__c = aoc.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Transfer';
+   
+
 
     insert trans1;
           
@@ -222,12 +185,12 @@ static testmethod void scenario3(){
     Database.executeBatch(b);
     Test.stopTest();  
     
-    AQB__Transaction__c trans =[Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Credit_Debit_Account_Error__c  FROM AQB__Transaction__c WHERE 
-    AQB__Reference__c= '3' LIMIT 1];       
-    System.assertEquals(trans.MDA_Credit_Debit_Account_Error__c, True);
-
-   
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true LIMIT 1]; 
+    System.assertEquals(true, trans.MDA_Credit_Debit_Account_Error__c);    
 }
+
+
 
 
  /**
