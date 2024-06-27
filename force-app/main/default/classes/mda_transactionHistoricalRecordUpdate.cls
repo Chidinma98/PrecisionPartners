@@ -287,15 +287,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
             //Checks Non GL Data Sources
             else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
-                //Check Gift in Kind
                         if(trans.AQB__Type__c == 'Payment' && (trans.AQB__Method__c == 'Personal Property' || trans.AQB__Method__c == 'Real Property')){
-                            //Check Data Validity
+                            // //CONFIRM LOGIC //Check Gift in Kind
                             if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Gift in Kind Form / Documentation'){
-                                //CONFIRM LOGIC
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1;
                                 //CONFIRM LOGIC
                             }else{
+                                // //CONFIRM LOGIC NOT Gift in Kind
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1; 
                             }         
@@ -330,16 +329,20 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                         }
              }
         
-            // Checks Source of Data of Pledge Form / Documentation
-            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation'){
+            //Checks Source of Data of Pledge Form / Documentation
+            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation' || trans.AQB__Batch__r.AQB__SourceofData__c == 'Planned Giving Form / Documentation'){
+                System.debug('1');
                 if(trans.AQB__Type__c != 'Pledge Soft Credit' || trans.AQB__Type__c != 'Pledge' ){
+                  
                     trans.MDA_Credit_Debit_Account_Error__c = true;
                     recordsProcessed = recordsProcessed + 1; 
 
                 }
                 else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__Instrument__c == null){
                        //--Scenario 21 
+                       
                         if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
+                           
                             trans.MDA_GL_Posting_Type__c = 'Manual';
                             recordsProcessed = recordsProcessed + 1;               
                         } 
@@ -356,7 +359,9 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                  
              }
             //Checks for Adjustment
+
             else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Adjustments'){
+                System.debug('Enters adjustment');
                 //Check Gift in Kind
                 //Check Grant/Grant Payment
                 //Check Conditinal Pledge
@@ -374,6 +379,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     trans.MDA_Related_Void_Transaction__c = null;
                     recordsProcessed = recordsProcessed + 1;
                 } else if (trans.AQB__Type__c != 'Soft Credit' || trans.AQB__Type__c != 'Pledge Soft Credit'){
+                    System.debug('Enters scenario');
                     //GET RECORDS
                     //GL Adjustments
                     //Adjustments with NO Voided Transaction
@@ -381,19 +387,17 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     Id batchItem = trans.MDA_Batch_Item_ID2__c;
                     Id gift = trans.AQB__Gift__c;
                     String type = trans.AQB__Type__c;                    
+                    
+                    
                     AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE 
                     AQB__Gift__c = :gift 
                     AND MDA_Batch_Item_ID2__c = :batchItem 
                     AND Id != :transId
                     AND AQB__VoidedTransaction__c != null 
                     AND AQB__Type__c = :type];
-                    if(correctTrans.size() == 0){
-                        for(AQB__Transaction__c trans2: correctTrans){
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                           
-       
-                        }
+
+                    if(correctTrans.size() == 0){                   
+                        trans.MDA_Credit_Debit_Account_Error__c = true;
                       
                     }
                     
