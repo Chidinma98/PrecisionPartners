@@ -194,13 +194,13 @@ static testmethod void annualFundwithTransfer(){
 
 
  /**
-  * @description:Scenario 4
+  * @description:glWithGrantPaymentNull
   * @Comments: Check situation where Batch Source of Data 
-  * is Mail Transaction Type is "Grant Payment" and Payment Method is "Check"
+  * is a GL Source with type of Grant Payment and Null Values
  **/
-    static testmethod void scenario4(){
+    static testmethod void glWithGrantPaymentNull(){
         //ADD BATCH DATA
-    	AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    	AQB__Batch__c batch = mda_TestDataFactory.createBatch('MDA Treasury',true);        
         //ADD ACCOUNT DATA
         Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
         //QUERY OTHER OBJECTS  
@@ -213,13 +213,13 @@ static testmethod void annualFundwithTransfer(){
         AQB__Transaction__c trans1 = new AQB__Transaction__c();
         trans1.AQB__Account__c = acc.Id; 
         trans1.AQB__Date__c = date.today();
-        trans1.AQB__Reference__c= '4';
-        trans1.AQB__Type__c = 'Grant Payment';
-        trans1.AQB__Method__c = 'Check';
-		trans1.AQB__Batch__c = batch.Id;
+        trans1.AQB__FinancialSystemDate__c = NULL;
+        trans1.mda_testRecord__c = true;
+        trans1.AQB__Batch__c = batch.Id;
         trans1.AQB__VoidedTransaction__c = NULL;
         trans1.AQB__Acknowledgement__c = ack.Id; 
-        trans1.AQB__ChartofAccounts__c = aoc.Id; 
+        trans1.AQB__ChartofAccounts__c = aoc.Id;
+        trans1.AQB__Type__c = 'Grant Payment';
  
         insert trans1;
               
@@ -228,85 +228,44 @@ static testmethod void annualFundwithTransfer(){
         Database.executeBatch(b);
         Test.stopTest();  
         
-        AQB__Transaction__c trans =[Select Id, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
-        AQB__Reference__c= '4' LIMIT 1];       
-        System.assertEquals(trans.AQB__DebitAccount__c , coa.Id);
-        System.assertEquals(trans.MDA_Debit_Account__c , coa.Id);
-        System.assertEquals(trans.MDA_Debit_Account_Number__c , coa.AQB__DesignationAccountNumber__c);
-        System.assertEquals(trans.MDA_Credit_AccountLookup__c, trans.AQB__ChartofAccounts__c);
-        System.assertEquals(trans.MDA_Credit_Account_Number__c, trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c);
-        System.assertEquals(trans.MDA_GL_Posting_Type__c, 'Automated');
+        AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+        mda_testRecord__c = true LIMIT 1];       
+        System.assertEquals(true, trans.MDA_Credit_Debit_Account_Error__c);
+       
 
    	
     }
-// /**
-//  * @description:Scenario 5
-//  * @Comments: Check situation where Batch Source of Data 
-//  * is Mail and Transaction Type is "Grant Payment" and Payment Method is "Soft Credit"
-// **/
-    static testmethod void scenario5(){
-        //ADD BATCH DATA
-    	AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
-        //ADD ACCOUNT DATA
-        Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
-        //QUERY OTHER OBJECTS  
-        AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
-        AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
-        //Query COA        
-      	AQB__LLChartofAccounts__c coa = [Select Id,  AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
-
-        //Add Transactions
-        AQB__Transaction__c trans1 = new AQB__Transaction__c();
-        trans1.AQB__Account__c = acc.Id; 
-        trans1.AQB__Date__c = date.today();
-        trans1.AQB__Reference__c= '5';
-        trans1.AQB__Type__c = 'Grant Payment';
-        trans1.AQB__Method__c= 'Soft Credit';
-		trans1.AQB__Batch__c = batch.Id;
-        trans1.AQB__VoidedTransaction__c = NULL;
-        trans1.AQB__Acknowledgement__c = ack.Id; 
-        trans1.AQB__ChartofAccounts__c = aoc.Id; 
- 
-        insert trans1;
-              
-        Test.startTest();
-        mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
-        Database.executeBatch(b);
-        Test.stopTest();  
-        
-        AQB__Transaction__c trans =[Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Credit_Debit_Account_Error__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
-        AQB__Reference__c= '5' LIMIT 1]; 
-        System.assertEquals(trans.AQB__Do_not_push_to_Accounting__c, True);
-   	
-    }
-
-//  /**
-//  * @description:Scenario 6
-//  * @Comments: Check situation where Batch Source of Data 
-//  * is Mail and Transaction Type is "Grant Payment" and Payment Method is anything besides 'Soft Credit' 'Check','ACH','Wire','ACH/Wire'
-// **/
-static testmethod void scenario6(){
+    
+/**
+  * @description:glWithGrantPaymentNonNull
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Grant Payment and Non Null Values
+ **/
+static testmethod void glWithGrantPaymentNonNull(){
     //ADD BATCH DATA
-    AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    AQB__Batch__c batch = mda_TestDataFactory.createBatch('MDA Treasury',true);        
     //ADD ACCOUNT DATA
     Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
     //QUERY OTHER OBJECTS  
     AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
     AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
     //Query COA        
-      AQB__LLChartofAccounts__c coa = [Select Id,  AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
 
     //Add Transactions
     AQB__Transaction__c trans1 = new AQB__Transaction__c();
     trans1.AQB__Account__c = acc.Id; 
     trans1.AQB__Date__c = date.today();
-    trans1.AQB__Reference__c= '6';
-    trans1.AQB__Type__c = 'Grant Payment';
-    trans1.AQB__Method__c= 'Real Property';
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
     trans1.AQB__Batch__c = batch.Id;
     trans1.AQB__VoidedTransaction__c = NULL;
     trans1.AQB__Acknowledgement__c = ack.Id; 
-    trans1.AQB__ChartofAccounts__c = aoc.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Grant Payment';
+    trans1.MDA_GL_Posting_Type__c = 'Automated';
+    trans1.MDA_Credit_AccountLookup__c = coa.Id;
+    trans1.MDA_Debit_Account__c= coa.Id ;
 
     insert trans1;
           
@@ -315,19 +274,67 @@ static testmethod void scenario6(){
     Database.executeBatch(b);
     Test.stopTest();  
     
-    AQB__Transaction__c trans =[Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Credit_Debit_Account_Error__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
-    AQB__Reference__c= '6' LIMIT 1]; 
-    System.assertEquals(trans.MDA_Credit_Debit_Account_Error__c, True);
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true LIMIT 1];       
+    System.assertEquals(coa.Id, trans.AQB__DebitAccount__c);
+    System.assertEquals(coa.Id, trans.MDA_Debit_Account__c);
+    System.assertEquals(coa.AQB__DesignationAccountNumber__c, trans.MDA_Debit_Account_Number__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c,  trans.MDA_Credit_Account_Number__c);
+    System.assertEquals('Automated', trans.MDA_GL_Posting_Type__c);
    
 }
+
+
+ /**
+  * @description:glWithGrantPaymentMail
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Grant Payment and Null Values
+ **/
+static testmethod void glWithGrantPaymentMail(){
+    //ADD BATCH DATA
+    AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    //ADD ACCOUNT DATA
+    Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+    //QUERY OTHER OBJECTS  
+    AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+    AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+    //Query COA        
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
+
+    //Add Transactions
+    AQB__Transaction__c trans1 = new AQB__Transaction__c();
+    trans1.AQB__Account__c = acc.Id; 
+    trans1.AQB__Date__c = date.today();
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
+    trans1.AQB__Batch__c = batch.Id;
+    trans1.AQB__VoidedTransaction__c = NULL;
+    trans1.AQB__Acknowledgement__c = ack.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Grant Payment';
+
+    insert trans1;
+          
+    Test.startTest();
+    mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+    Database.executeBatch(b);
+    Test.stopTest();  
     
-// /**
-//  * @description:Scenario 7
-//  * @Comments: Check situation where Batch Source of Data 
-//  * is Mail and Transaction Type is "Payment" and Pledge Payment is "True" 
-//  * and Pledge Stipulation is "Conditional" and Transaction Method is "Check"
-// **/
-    static testmethod void scenario7(){
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true LIMIT 1];       
+    System.assertEquals(true, trans.MDA_Credit_Debit_Account_Error__c);   
+   
+}
+
+
+ /**
+  * @description:mailPaymentwithConditionalnull
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Conditional Payment 
+ **/
+
+    static testmethod void mailPaymentwithConditionalnull(){
         //ADD BATCH DATA
     	AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
         //ADD ACCOUNT DATA
@@ -342,15 +349,18 @@ static testmethod void scenario6(){
         AQB__Transaction__c trans1 = new AQB__Transaction__c();
         trans1.AQB__Account__c = acc.Id; 
         trans1.AQB__Date__c = date.today();
-        trans1.AQB__Reference__c= '7';
-        trans1.AQB__Type__c = 'Payment';
-        trans1.AQB__Method__c = 'Check';
-		trans1.AQB__Batch__c = batch.Id;
+        trans1.AQB__FinancialSystemDate__c = NULL;
+        trans1.mda_testRecord__c = true;
+        trans1.AQB__Batch__c = batch.Id;
         trans1.AQB__VoidedTransaction__c = NULL;
+        trans1.AQB__Acknowledgement__c = ack.Id; 
+        trans1.AQB__ChartofAccounts__c = aoc.Id;
+        trans1.AQB__Type__c = 'Payment';
         trans1.AQB__PledgePayment__c = true;
         trans1.AQB__PledgeStipulation__c = 'Conditional';
-        trans1.AQB__Acknowledgement__c = ack.Id; 
-        trans1.AQB__ChartofAccounts__c = aoc.Id; 
+        trans1.AQB__Method__c = 'Cash';
+       
+
  
         insert trans1;
               
@@ -359,18 +369,173 @@ static testmethod void scenario6(){
         Database.executeBatch(b);
         Test.stopTest();  
         
-        AQB__Transaction__c trans =[Select Id, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
-        AQB__Reference__c= '7' LIMIT 1];       
-        System.assertEquals(trans.AQB__DebitAccount__c , coa.Id);
-        System.assertEquals(trans.MDA_Debit_Account__c , coa.Id);
-        System.assertEquals(trans.MDA_Debit_Account_Number__c , coa.AQB__DesignationAccountNumber__c);
-        System.assertEquals(trans.MDA_Credit_AccountLookup__c, trans.AQB__ChartofAccounts__c);
-        System.assertEquals(trans.MDA_Credit_Account_Number__c, trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c);
-        System.assertEquals(trans.MDA_GL_Posting_Type__c , 'Automated');
+        AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+        mda_testRecord__c = true  LIMIT 1];       
+        System.assertEquals(true, trans.MDA_Credit_Debit_Account_Error__c);
 
    	
     }
     
+/**
+  * @description:mailPaymentwithConditionalnotNull
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Unconditional Payment 
+ **/
+
+ static testmethod void mailPaymentwithConditionalnotNull(){
+    //ADD BATCH DATA
+    AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    //ADD ACCOUNT DATA
+    Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+    //QUERY OTHER OBJECTS  
+    AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+    AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+    //Query COA        
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
+
+    //Add Transactions
+    AQB__Transaction__c trans1 = new AQB__Transaction__c();
+    trans1.AQB__Account__c = acc.Id; 
+    trans1.AQB__Date__c = date.today();
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
+    trans1.AQB__Batch__c = batch.Id;
+    trans1.AQB__VoidedTransaction__c = NULL;
+    trans1.AQB__Acknowledgement__c = ack.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Payment';
+    trans1.AQB__PledgePayment__c = true;
+    trans1.AQB__PledgeStipulation__c = 'Conditional';
+    trans1.AQB__Method__c = 'Cash';
+    trans1.MDA_GL_Posting_Type__c = 'Automated';
+    trans1.MDA_Credit_AccountLookup__c = coa.Id;
+    trans1.MDA_Debit_Account__c= coa.Id ;
+
+
+    insert trans1;
+          
+    Test.startTest();
+    mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+    Database.executeBatch(b);
+    Test.stopTest();  
+    
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true  LIMIT 1];       
+    System.assertEquals(coa.Id, trans.AQB__DebitAccount__c);
+    System.assertEquals(coa.Id, trans.MDA_Debit_Account__c);
+    System.assertEquals(coa.AQB__DesignationAccountNumber__c, trans.MDA_Debit_Account_Number__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c,trans.MDA_Credit_Account_Number__c);
+    System.assertEquals('Automated', trans.MDA_GL_Posting_Type__c);
+
+   
+}
+
+
+ /**
+  * @description:mailPaymentwithConditionalnullCC
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Conditional Payment and method is credit card
+ **/
+
+ static testmethod void mailPaymentwithConditionalnullCC(){
+    //ADD BATCH DATA
+    AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    //ADD ACCOUNT DATA
+    Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+    //QUERY OTHER OBJECTS  
+    AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+    AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+    //Query COA        
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];
+
+    //Add Transactions
+    AQB__Transaction__c trans1 = new AQB__Transaction__c();
+    trans1.AQB__Account__c = acc.Id; 
+    trans1.AQB__Date__c = date.today();
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
+    trans1.AQB__Batch__c = batch.Id;
+    trans1.AQB__VoidedTransaction__c = NULL;
+    trans1.AQB__Acknowledgement__c = ack.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Payment';
+    trans1.AQB__PledgePayment__c = true;
+    trans1.AQB__PledgeStipulation__c = 'Conditional';
+    trans1.AQB__Method__c = 'Credit Card';
+   
+
+
+    insert trans1;
+          
+    Test.startTest();
+    mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+    Database.executeBatch(b);
+    Test.stopTest();  
+    
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true  LIMIT 1];       
+    System.assertEquals(true, trans.MDA_Credit_Debit_Account_Error__c);
+
+   
+}
+
+
+ /**
+  * @description:mailPaymentwithConditionalnonNullCC
+  * @Comments: Check situation where Batch Source of Data 
+  * is a GL Source with type of Conditional Payment and method is credit card
+ **/
+
+ static testmethod void mailPaymentwithConditionalnonNullCC(){
+    //ADD BATCH DATA
+    AQB__Batch__c batch = mda_TestDataFactory.createBatch('Mail',true);        
+    //ADD ACCOUNT DATA
+    Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+    //QUERY OTHER OBJECTS  
+    AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+    AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+    //Query COA        
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19' LIMIT 1];
+
+    //Add Transactions
+    AQB__Transaction__c trans1 = new AQB__Transaction__c();
+    trans1.AQB__Account__c = acc.Id; 
+    trans1.AQB__Date__c = date.today();
+    trans1.AQB__FinancialSystemDate__c = NULL;
+    trans1.mda_testRecord__c = true;
+    trans1.AQB__Batch__c = batch.Id;
+    trans1.AQB__VoidedTransaction__c = NULL;
+    trans1.AQB__Acknowledgement__c = ack.Id; 
+    trans1.AQB__ChartofAccounts__c = aoc.Id;
+    trans1.AQB__Type__c = 'Payment';
+    trans1.AQB__PledgePayment__c = true;
+    trans1.AQB__PledgeStipulation__c = 'Conditional';
+    trans1.MDA_GL_Posting_Type__c = 'Automated';
+    trans1.MDA_Credit_AccountLookup__c = coa.Id;
+    trans1.MDA_Debit_Account__c= coa.Id ;
+    trans1.AQB__Method__c = 'Credit Card';
+   
+
+
+    insert trans1;
+          
+    Test.startTest();
+    mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+    Database.executeBatch(b);
+    Test.stopTest();  
+    
+    AQB__Transaction__c trans =[Select Id, MDA_Credit_Debit_Account_Error__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+    mda_testRecord__c = true  LIMIT 1];       
+    System.assertEquals(coa.Id, trans.AQB__DebitAccount__c);
+    System.assertEquals(coa.Id, trans.MDA_Debit_Account__c);
+    System.assertEquals(coa.AQB__DesignationAccountNumber__c, trans.MDA_Debit_Account_Number__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
+    System.assertEquals(trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c,trans.MDA_Credit_Account_Number__c);
+    System.assertEquals('Automated', trans.MDA_GL_Posting_Type__c);
+
+   
+}
 // /**
 //  * @description:Scenario 8
 //  * @Comments: Check situation where Batch Source of Data 

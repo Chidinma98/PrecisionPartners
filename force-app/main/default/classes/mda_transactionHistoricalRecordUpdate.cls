@@ -141,13 +141,16 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 //Check Payment Type - Payment 
             	  
                 else if(trans.AQB__Type__c == 'Payment'){
-                    //Scenario 7 - Checks if linked to a pledge payment and pledge stipulation is conditional
+                    // Checks if transaction is linked to a pledge payment and pledge stipulation is conditional
+                    //with NULL data
                     
                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional' ){
                         if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1;
+                             // Checks if transaction is linked to a pledge payment and pledge stipulation is conditional
+                             //with non NULL data
 
                             }else{
                                 trans.AQB__DebitAccount__c = coa3[0].Id;
@@ -158,11 +161,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 trans.MDA_GL_Posting_Type__c = 'Automated';
                                 recordsProcessed = recordsProcessed + 1;
                             }
-                        //Scenario 8  - Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card  
+                        // Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card
+                        //with NULL data  
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
+                                recordsProcessed = recordsProcessed + 1;
+                                // Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card
+                               //with non NULL data   
                             }else {
                                 trans.AQB__DebitAccount__c = coa2[0].Id;
                                 trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -179,7 +185,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                        }           
                         
                     }
-                    //Scenarion 11- Checks for Pledge Payment and Unconditional pledge stipulation
+                    // Checks for Pledge Payment and Unconditional pledge stipulation
                     if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional' ){
                         if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Manual'){
@@ -194,11 +200,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 trans.MDA_GL_Posting_Type__c = 'Manual';
                                 recordsProcessed = recordsProcessed + 1;
                             }
-                       //Scenario 12- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card    
+                       //Scenario 12- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
+                       // and NULL data    
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null ){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                             }else{
+                                 //Scenario 12- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
+                                // and NON NULL data
                                 trans.AQB__DebitAccount__c = coa2[0].Id;
                                 trans.MDA_Debit_Account__c = coa2[0].Id;
                                 trans.MDA_Debit_Account_Number__c = coa2[0].AQB__DesignationAccountNumber__c;
