@@ -53,10 +53,15 @@ public class mda_TestDataFactory {
     }
     
        public static AQB__Gift__c getGift(){
-        AQB__Gift__c gift = [Select Id, Name from AQB__Gift__c LIMIT 1];
+        AQB__Gift__c gift = [Select Id, Name from AQB__Gift__c  LIMIT 1];
         return gift;
     }
     
+    public static AQB__Gift__c getMatchedGift(){
+        AQB__Gift__c gift = [ Select Id, AQB__MatchLink__r.Id from  AQB__Gift__c WHERE AQB__MatchLink__r.Id != null LIMIT 1];
+        return gift;
+    }
+
     public static AQB__Transaction__c createMatchingTransaction(){
         AQB__Gift__c gift = mda_TestDataFactory.getGift();
         AQB__BatchItemTransaction__c obi = mda_TestDataFactory.getOBI();

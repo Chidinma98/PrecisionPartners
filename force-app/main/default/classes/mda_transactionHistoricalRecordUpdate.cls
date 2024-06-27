@@ -271,18 +271,20 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                    
                     
                 }
-               //--Check for matching Gift
+               //Check for matching Gift
                else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgePayment__c == false && trans.AQB__Gift__r.AQB__MatchLink__r.Id != null){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                     recordsProcessed = recordsProcessed + 1;   
                 }
-                //--
+                //
                 else if(!transType2.contains(trans.AQB__Type__c))
                 {
                     trans.MDA_Credit_Debit_Account_Error__c = true;
                     recordsProcessed = recordsProcessed + 1;               
                 }
             }
+
+
             //Checks Non GL Data Sources
             else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
                 //Check Gift in Kind
