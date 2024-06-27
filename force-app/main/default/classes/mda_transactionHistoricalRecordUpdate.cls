@@ -27,9 +27,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
     }
      
     global void execute(Database.BatchableContext BC, List<	AQB__Transaction__c> transList) {
-      AQB__LLChartofAccounts__c[] coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324'];
-      AQB__LLChartofAccounts__c[] coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19'];
-      AQB__LLChartofAccounts__c[] coa3 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90'];  
+      AQB__LLChartofAccounts__c[] coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324'];
+      AQB__LLChartofAccounts__c[] coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19'];
+      AQB__LLChartofAccounts__c[] coa3 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90'];  
       
         Set<String> dataSource = new Set<String>{'Mail','Institutional Lockbox', 'Children\'s Art Project (CAP)', 'Live Check / Credit Card (MD Anderson Front Office)', 
             									'MDA Treasury', 'Special Events Lockbox', 'MDA Cashier Office', 'Online - Donation Sites',
@@ -179,10 +182,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     // Checks for Pledge Payment and Unconditional pledge stipulation
                     if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional' ){
                         if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
+
+                             // Checks for Pledge Payment and Unconditional pledge stipulation with null data
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Manual'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1; 
                             }else{
+                               
+                                // Checks for Pledge Payment and Unconditional pledge stipulation with non null data
                                 trans.AQB__DebitAccount__c = coa3[0].Id;
                                 trans.MDA_Debit_Account__c = coa3[0].Id;
                                 trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -191,13 +198,13 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 trans.MDA_GL_Posting_Type__c = 'Manual';
                                 recordsProcessed = recordsProcessed + 1;
                             }
-                       //Scenario 12- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
-                       // and NULL data    
+                       // Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
+                      // and null Data
                        } else if (trans.AQB__Method__c == 'Credit Card'){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null ){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                             }else{
-                                 //Scenario 12- Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
+                                //Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
                                 // and NON NULL data
                                 trans.AQB__DebitAccount__c = coa2[0].Id;
                                 trans.MDA_Debit_Account__c = coa2[0].Id;
@@ -208,18 +215,24 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 recordsProcessed = recordsProcessed + 1;
                                 }
                        } else {
+                                // Checks if linked to a pledge payment and pledge stipulation is conditional with method of not 
+                                // credit card or anything above
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1;
                        }
                         
                     }
-                    //Scenario 15 - Checks for false pledge payment
+
+
+                  //Checks for false pledge payment
                    else if(trans.AQB__PledgePayment__c == false){
                         if(paymentMethod.contains(trans.AQB__Method__c) ){
+                            //Checks for false pledge payment with NULL Values
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1;
                             }else{
+                                //Checks for false pledge payment with non NULL Values
                                     trans.AQB__DebitAccount__c = coa3[0].Id;
                                     trans.MDA_Debit_Account__c = coa3[0].Id;
                                     trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
@@ -229,12 +242,15 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                     recordsProcessed = recordsProcessed + 1;
                             }
                             
-                         //Scenario 16 - Checks for false pledge payment and payment method of Credit Card
+                         // Checks for false pledge payment and payment method of Credit Card
+                         //And Null Values
                        } else if(trans.AQB__Method__c == 'Credit Card'){
                             if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
                                 trans.MDA_Credit_Debit_Account_Error__c = true;
                                 recordsProcessed = recordsProcessed + 1;
                             }else{
+                                 // Checks for false pledge payment and payment method of Credit Card
+                                //and not Null Values
                                 trans.AQB__DebitAccount__c = coa2[0].Id;
                                 trans.MDA_Debit_Account__c = coa2[0].Id;
                                 trans.MDA_Debit_Account_Number__c = coa2[0].AQB__DesignationAccountNumber__c;
@@ -245,6 +261,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                                 }
                            
                        }else {
+                            // Checks if linked to a pledge payment and pledge stipulation is conditional with method of not 
+                            // credit card or anything above
                             trans.MDA_Credit_Debit_Account_Error__c = true;
                             recordsProcessed = recordsProcessed + 1;
                        }
@@ -587,9 +605,9 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
     // myset2.addAll(correctTransactions);
     // result2.addAll(myset2);
   
-  System.debug(transList.size() +'=====TRANSLIST BATCH SIZE====' + JSON.serializePretty(transList));
+  //System.debug(transList.size() +'=====TRANSLIST BATCH SIZE====' + JSON.serializePretty(transList));
   Database.SaveResult[] results = Database.update(transList, false);
-  System.debug(correctTransactions.size() +'===== CorrectTrans BATCH SIZE ====' + JSON.serializePretty(correctTransactions));
+  //System.debug(correctTransactions.size() +'===== CorrectTrans BATCH SIZE ====' + JSON.serializePretty(correctTransactions));
   Database.SaveResult[] results2 = Database.update(correctTransactions, false);
   
 
