@@ -416,20 +416,25 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
      }else{
         //Check for Grant and Grant Payment
          if(trans.AQB__Type__c == 'Grant Payment' || trans.AQB__Type__c == 'Grant' ){
-            trans.AQB__Do_not_push_to_Accounting__c = true;     
+            trans.AQB__Do_not_push_to_Accounting__c = true;   
          } else if(trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c) ){
-             //Scenario 26 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
+            System.debug('enters method 1');
+            //Scenario 26 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
              // and corrected transaction found
              if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
-                  //GET RECORDS
+                System.debug('enters method 2'); 
+                
+                //GET RECORDS
                   Id transId = trans.Id;
                   Id batchItem = trans.MDA_Batch_Item_ID2__c;
                   Id gift = trans.AQB__Gift__c;
                   String type = trans.AQB__Type__c;
                   Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
                   Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
+                  
                   AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                  WHERE AQB__Gift__c = :gift 
+                  WHERE 
+                  AQB__Gift__c = :gift 
                   AND MDA_Batch_Item_ID2__c = :batchItem 
                   AND Id != :transId
                   AND AQB__Type__c = :type 
@@ -501,7 +506,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 WHERE AQB__Gift__c = :gift 
                 AND MDA_Batch_Item_ID2__c = :batchItem 
                 AND Id != :transId
-                AND AQB__Type__c = :type];  
+                AND AQB__Type__c = :type];
+
              		if(trans.AQB__PledgePayment__c == false && correctTrans.size() > 0){
                  		for(AQB__Transaction__c trans2: correctTrans){
          				trans.AQB__Do_not_push_to_Accounting__c = true;

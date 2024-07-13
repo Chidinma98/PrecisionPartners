@@ -11,12 +11,14 @@
 @isTest
 public class mda_TestDataFactory {
     public static AQB__Batch__c createBatch(String name, Boolean doInsert) {
-        AQB__Batch__c batch = new AQB__Batch__c(AQB__SourceofData__c = name, RecordTypeId ='0125Y0000023v1aQAA');
+        Id closedBatch = Schema.SObjectType.AQB__Batch__c.getRecordTypeInfosByName().get('Closed Batch').getRecordTypeId();
+        AQB__Batch__c batch = new AQB__Batch__c(AQB__SourceofData__c = name, RecordTypeId = closedBatch);
 		if(doInsert) {
 			insert batch;
 		}
 		return batch;
 	}
+
     
     public static Account createAccount(String name, Boolean doInsert) {
         Account acc = new Account(name = name);
@@ -77,6 +79,35 @@ public class mda_TestDataFactory {
         AQB__ChartofAccounts__c = aoc.Id,
         AQB__Account__c = acc.Id,
         AQB__Reference__c= 'correctTrans'
+        );
+        
+        insert trans;        
+        return trans;
+        
+    }
+
+
+
+    public static AQB__Transaction__c createMatchingTransactionPledge(){
+        AQB__Gift__c gift = mda_TestDataFactory.getGift();
+        AQB__BatchItemTransaction__c obi = mda_TestDataFactory.getOBI();
+        Account acc = mda_TestDataFactory.createAccount('Test Account',true);               
+        AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+        AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();  
+        
+        //Values
+        AQB__Transaction__c trans= new AQB__Transaction__c(
+        AQB__OriginatingBatchItemTransaction__c = obi.Id,
+        AQB__Gift__c = gift.Id, 
+        AQB__Acknowledgement__c = ack.Id, 
+        AQB__ChartofAccounts__c = aoc.Id,
+        AQB__Account__c = acc.Id,
+        AQB__PledgePayment__c = true,
+        MDA_Batch_Item_ID2__c = 'ABCD',
+        AQB__Type__c = 'Payment',
+        AQB__PaymentNumber__c = 25,
+        mda_testRecord__c = true
+        //AQB__Reference__c= 'correctTrans'
         );
         
         insert trans;        
