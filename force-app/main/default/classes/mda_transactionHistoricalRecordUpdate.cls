@@ -27,17 +27,19 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
     }
      
     global void execute(Database.BatchableContext BC, List<	AQB__Transaction__c> transList) {
-      AQB__LLChartofAccounts__c[] coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c 
-      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324'];
-      AQB__LLChartofAccounts__c[] coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
-      WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19'];
-      AQB__LLChartofAccounts__c[] coa3 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
-      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90'];  
+      AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+      AQB__LLChartofAccounts__c coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19' LIMIT 1];
+      AQB__LLChartofAccounts__c coa3 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
+      WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90' LIMIT 1];  
       
         Set<String> dataSource = new Set<String>{'Mail','Institutional Lockbox', 'Children\'s Art Project (CAP)', 'Live Check / Credit Card (MD Anderson Front Office)', 
             									'MDA Treasury', 'Special Events Lockbox', 'MDA Cashier Office', 'Online - Donation Sites',
-            									'Online - Event Registration Sites', 'Online - Peer 2 Peer Sites', 'UT Foundation'};
-        Set<String> paymentMethod = new Set<String>{'Cash','Check','Securities','ACH','Wire','ACH/Wire', 'Paypal', 'Transfer'};
+            									 'Online - Peer 2 Peer Sites', 'UT Foundation'};
+        
+        
+        Set<String> paymentMethod = new Set<String>{'Cash','Check','Securities','ACH','Wire', 'Paypal', 'Transfer'};
         Set<String> paymentMethod2 = new Set<String>{'Cash', 'Check','Securities','ACH','Wire','ACH/Wire'};
         Set<String> paymentMethod3 = new Set<String>{'Check','ACH','Wire','ACH/Wire'};
         Set<String> paymentMethod4 = new Set<String>{'Cash','Check','Securities','ACH','Wire','ACH/Wire', 'Paypal'};
@@ -53,570 +55,102 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         List<AQB__Transaction__c> correctTransactions = new List<AQB__Transaction__c>();
         
         for(AQB__Transaction__c trans: transList) {
-        trans.MDA_Credit_Debit_Account_Error__c = false;
-        //Check Posted Transaction and Batch Status
-         if(trans.AQB__FinancialSystemDate__c == NULL ){
-        //Check the batch is not closed if it is a closed batch set to MDA_Credit_Debit_Account_Error__c to null
-         if(trans.AQB__Batch__r.AQB__RecordTypeDeveloperName__c == 'ClosedBatch'){
-        //Check Voided Transaction
-         if(trans.AQB__VoidedTransaction__c == NULL){
-        //Check for Pledge Offset - Yes
-        if((trans.AQB__PledgePayment__c == true && pledgeOffset.contains(trans.AQB__Type__c)) || (trans.AQB__ThirdPartyPayoff__c == true && pledgeOffset.contains(trans.AQB__Type__c))){
             trans.AQB__Do_not_push_to_Accounting__c = false;
-            trans.AQB__FinancialSystemDate__c = null;
-            trans.MDA_Credit_AccountLookup__c = null;
-            trans.MDA_Debit_Account__c = null;
-            trans.MDA_GL_Posting_Type__c = null;
-            trans.MDA_Journal_ID__c = null;
-            trans.MDA_Original_Transaction__c = null;
-            trans.MDA_Related_Void_Transaction__c = null;
-            recordsProcessed = recordsProcessed + 1;
-
-        }else{  
-            //Check for Pledge Offset - No
-            //Check Source of Data - Annual Fund 
-            //Scenario 1- Annual Fund Source of Data with PAYMENT
-            if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'){ 
-                //Source of Data with Transaction Type of "Payment" and NULL values
-                    if(trans.AQB__Type__c == 'Payment'){ 
-                        if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                        } else {
-                            //Source of Data with Transaction Type of "Payment" and NON NULL values
-                            trans.AQB__DebitAccount__c = coa[0].Id;
-                            trans.MDA_Debit_Account__c = coa[0].Id;
-                            trans.MDA_Debit_Account_Number__c = coa[0].AQB__DesignationAccountNumber__c;
-                            trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                            trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                            trans.MDA_GL_Posting_Type__c = 'Automated';
-                            recordsProcessed = recordsProcessed + 1;
-                        }
-                   
-                    }
-                //Scenario 2 - Source of Data Annual Fund with Transaction Type of anything but  'Soft Credit' and 'Pledge Soft Credit'
-                	 else if(transType2.contains(trans.AQB__Type__c) == false){
-                         trans.MDA_Credit_Debit_Account_Error__c = true;
-                         recordsProcessed = recordsProcessed + 1;
-                       
-                     }
-                   
-        	}
-            //Checks GL Data Sources
-             else if(dataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c) == true){
-                //Check Payment Type - Grant Payment
-                if(trans.AQB__Type__c == 'Grant Payment'){
-                    //Check Source of Data Validation
-                    if(sourceDataValidation.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
-                       if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                       }else{
-                            trans.AQB__DebitAccount__c = coa3[0].Id;
-                            trans.MDA_Debit_Account__c = coa3[0].Id;
-                            trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
-                            trans.MDA_Credit_AccountLookup__c  = trans.AQB__ChartofAccounts__c;
-                            trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c; 
-                            trans.MDA_GL_Posting_Type__c = 'Automated';
-                            recordsProcessed = recordsProcessed + 1;
-                        }
-                    //Scenario for invalid source of data  
-                    }else{
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                    }
-                     
-                }
-            	
-                //Check Payment Type - Payment 
-            	  
-                else if(trans.AQB__Type__c == 'Payment'){
-                    // Checks if transaction is linked to a pledge payment and pledge stipulation is conditional
-                    //with NULL data
-                    
-                   if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional' ){
-                        if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                             // Checks if transaction is linked to a pledge payment and pledge stipulation is conditional
-                             //with non NULL data
-
-                            }else{
-                                trans.AQB__DebitAccount__c = coa3[0].Id;
-                                trans.MDA_Debit_Account__c = coa3[0].Id;
-                                trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
-                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;            
-                                trans.MDA_GL_Posting_Type__c = 'Automated';
-                                recordsProcessed = recordsProcessed + 1;
-                            }
-                        // Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card
-                        //with NULL data  
-                       } else if (trans.AQB__Method__c == 'Credit Card'){
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                                // Checks if linked to a pledge payment and pledge stipulation is conditional with method of credit card
-                               //with non NULL data   
-                            }else {
-                                trans.AQB__DebitAccount__c = coa2[0].Id;
-                                trans.MDA_Debit_Account__c = coa2[0].Id;
-                                trans.MDA_Debit_Account_Number__c = coa2[0].AQB__DesignationAccountNumber__c;
-                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;    
-                                trans.MDA_GL_Posting_Type__c = 'Automated'; 
-                                recordsProcessed = recordsProcessed + 1;
-                                    }
-                                 // Checks if linked to a pledge payment and pledge stipulation is conditional with method of not 
-                                 // credit card or anything above
-                                 
-                       } else {
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
-                       }           
-                        
-                    }
-
-
-                    // Checks for Pledge Payment and Unconditional pledge stipulation
-                    if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional' ){
-                        if(paymentMethod4.contains(trans.AQB__Method__c) == true ){
-
-                             // Checks for Pledge Payment and Unconditional pledge stipulation with null data
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Manual'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
-                            }else{
-                               
-                                // Checks for Pledge Payment and Unconditional pledge stipulation with non null data
-                                trans.AQB__DebitAccount__c = coa3[0].Id;
-                                trans.MDA_Debit_Account__c = coa3[0].Id;
-                                trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
-                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;            
-                                trans.MDA_GL_Posting_Type__c = 'Manual';
-                                recordsProcessed = recordsProcessed + 1;
-                            }
-                       // Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
-                      // and null Data
-                       } else if (trans.AQB__Method__c == 'Credit Card'){
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null ){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                            }else{
-                                //Checks for Pledge Payment and Unconditional pledge stipulation with payment method of credit card
-                                // and NON NULL data
-                                trans.AQB__DebitAccount__c = coa2[0].Id;
-                                trans.MDA_Debit_Account__c = coa2[0].Id;
-                                trans.MDA_Debit_Account_Number__c = coa2[0].AQB__DesignationAccountNumber__c;
-                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;    
-                                trans.MDA_GL_Posting_Type__c = 'Manual'; 
-                                recordsProcessed = recordsProcessed + 1;
-                                }
-                       } else {
-                                // Checks if linked to a pledge payment and pledge stipulation is conditional with method of not 
-                                // credit card or anything above
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                       }
-                        
-                    }
-
-
-                  //Checks for false pledge payment
-                   else if(trans.AQB__PledgePayment__c == false){
-                        if(paymentMethod.contains(trans.AQB__Method__c) ){
-                            //Checks for false pledge payment with NULL Values
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                            }else{
-                                //Checks for false pledge payment with non NULL Values
-                                    trans.AQB__DebitAccount__c = coa3[0].Id;
-                                    trans.MDA_Debit_Account__c = coa3[0].Id;
-                                    trans.MDA_Debit_Account_Number__c = coa3[0].AQB__DesignationAccountNumber__c;
-                                    trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                    trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;         
-                                    trans.MDA_GL_Posting_Type__c = 'Automated';
-                                    recordsProcessed = recordsProcessed + 1;
-                            }
-                            
-                         // Checks for false pledge payment and payment method of Credit Card
-                         //And Null Values
-                       } else if(trans.AQB__Method__c == 'Credit Card'){
-                            if(trans.MDA_Credit_AccountLookup__c == null || trans.MDA_Debit_Account__c == null || trans.MDA_GL_Posting_Type__c != 'Automated'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                            }else{
-                                 // Checks for false pledge payment and payment method of Credit Card
-                                //and not Null Values
-                                trans.AQB__DebitAccount__c = coa2[0].Id;
-                                trans.MDA_Debit_Account__c = coa2[0].Id;
-                                trans.MDA_Debit_Account_Number__c = coa2[0].AQB__DesignationAccountNumber__c;
-                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
-                                trans.MDA_Credit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;   
-                                trans.MDA_GL_Posting_Type__c = 'Automated';
-                                recordsProcessed = recordsProcessed + 1;
-                                }
-                           
-                       }else {
-                            // Checks if linked to a pledge payment and pledge stipulation is conditional with method of not 
-                            // credit card or anything above
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                       }
-                        
-                    }
-                   
-                    
-                }
-               //Check for matching Gift
-               else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgePayment__c == false && trans.AQB__Gift__r.AQB__MatchLink__r.Id != null){
-                    trans.AQB__Do_not_push_to_Accounting__c = true;
-                    recordsProcessed = recordsProcessed + 1;   
-                }
-                //
-                else if(!transType2.contains(trans.AQB__Type__c))
-                {
-                    trans.MDA_Credit_Debit_Account_Error__c = true;
-                    recordsProcessed = recordsProcessed + 1;               
-                }
-            }
-
-
-            //Checks Non GL Data Sources
-            else if(otherDataSource.contains(trans.AQB__Batch__r.AQB__SourceofData__c)){
-                        if(trans.AQB__Type__c == 'Payment' && (trans.AQB__Method__c == 'Personal Property' || trans.AQB__Method__c == 'Real Property')){
-                            // //CONFIRM LOGIC //Check Gift in Kind
-                            if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Gift in Kind Form / Documentation'){
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                                //CONFIRM LOGIC
-                            }else{
-                                // //CONFIRM LOGIC NOT Gift in Kind
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
-                            }         
-                        }
-                //Check Type of Grant / Grant Payment
-                        if(trans.AQB__Type__c == 'Grant' || trans.AQB__Type__c == 'Grant Payment'){
-                            //Check Data Validity
-                            if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Grants Management System'){
-                                 //CONFIRM LOGIC
-                                 trans.MDA_Credit_Debit_Account_Error__c = true;
-                                 recordsProcessed = recordsProcessed + 1;
-                                 //CONFIRM LOGIC
-                            } else {
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
-                            }
-
-                        }
-                //Check Type of Planned Gift
-                        if(trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__Gift__r.AQB__Instrument__c != null){
-                            //Check Data Validation
-                            if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Planned Giving Form / Documentation'){
-                                //CONFIRM LOGIC
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1;
-                                //CONFIRM LOGIC
-
-                            }else{
-                                trans.MDA_Credit_Debit_Account_Error__c = true;
-                                recordsProcessed = recordsProcessed + 1; 
-                            }
-                        }
-             }
-        
-            //Checks Source of Data of Pledge Form / Documentation
-            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Pledge Form / Documentation' || trans.AQB__Batch__r.AQB__SourceofData__c == 'Planned Giving Form / Documentation'){
-                System.debug('1');
-                if(trans.AQB__Type__c != 'Pledge Soft Credit' || trans.AQB__Type__c != 'Pledge' ){
-                  
-                    trans.MDA_Credit_Debit_Account_Error__c = true;
-                    recordsProcessed = recordsProcessed + 1; 
-
-                }
-                else if(trans.AQB__Type__c == 'Pledge' && trans.AQB__Instrument__c == null){
-                       //--Scenario 21 
-                       
-                        if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
-                           
-                            trans.MDA_GL_Posting_Type__c = 'Manual';
-                            recordsProcessed = recordsProcessed + 1;               
-                        } 
-                        //--Scenario 22
-                        else if(trans.AQB__PledgeStipulation__c == 'Conditional' || trans.AQB__PledgeStipulation__c == 'Statement of Intent' ){
-                            trans.AQB__Do_not_push_to_Accounting__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                            
-                        } else {
-                            trans.MDA_Credit_Debit_Account_Error__c = true;
-                            recordsProcessed = recordsProcessed + 1;
-                        }
-                    }
-                 
-             }
-            //Checks for Adjustment
-
-            else if(trans.AQB__Batch__r.AQB__SourceofData__c == 'Adjustments'){
-                System.debug('Enters adjustment');
-                //Check Gift in Kind
-                //Check Grant/Grant Payment
-                //Check Conditinal Pledge
-                if((trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) ||
-                   (trans.AQB__Type__c == 'Payment' || trans.AQB__Type__c == 'Grant Payment') ||
-                   (trans.AQB__Type__c == 'Pledge' && trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__PledgePayment__c == false))
-                {
-                    trans.AQB__Do_not_push_to_Accounting__c = false;
-                    trans.AQB__FinancialSystemDate__c = null;
-                    trans.MDA_Credit_AccountLookup__c = null;
-                    trans.MDA_Debit_Account__c = null;
-                    trans.MDA_GL_Posting_Type__c = null;
-                    trans.MDA_Journal_ID__c = null;
-                    trans.MDA_Original_Transaction__c = null;
-                    trans.MDA_Related_Void_Transaction__c = null;
-                    recordsProcessed = recordsProcessed + 1;
-                } else if (trans.AQB__Type__c != 'Soft Credit' || trans.AQB__Type__c != 'Pledge Soft Credit'){
-                    System.debug('Enters scenario');
-                    //GET RECORDS
-                    //GL Adjustments
-                    //Adjustments with NO Voided Transaction
-                    Id transId = trans.Id;
-                    Id batchItem = trans.MDA_Batch_Item_ID2__c;
-                    Id gift = trans.AQB__Gift__c;
-                    String type = trans.AQB__Type__c;                    
-                    
-                    
-                    AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE 
-                    AQB__Gift__c = :gift 
-                    AND MDA_Batch_Item_ID2__c = :batchItem 
-                    AND Id != :transId
-                    AND AQB__VoidedTransaction__c != null 
-                    AND AQB__Type__c = :type];
-
-                    if(correctTrans.size() == 0){                   
-                        trans.MDA_Credit_Debit_Account_Error__c = true;
-                      
-                    }
-                    
-
-                }
-
-            } else {
-                trans.MDA_Credit_Debit_Account_Error__c = true;
-                recordsProcessed = recordsProcessed + 1;
-            }
-
-        }
-         
-            		
-  //Checks for Voided Transaction                 
-     }else{
-        //Check for Grant and Grant Payment
-         if(trans.AQB__Type__c == 'Grant Payment' || trans.AQB__Type__c == 'Grant' ){
-            trans.AQB__Do_not_push_to_Accounting__c = true;   
-         } else if(trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c) ){
-            System.debug('enters method 1');
-            //Scenario 26 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
-             // and corrected transaction found
-             if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
-                System.debug('enters method 2'); 
-                
-                //GET RECORDS
-                  Id transId = trans.Id;
-                  Id batchItem = trans.MDA_Batch_Item_ID2__c;
-                  Id gift = trans.AQB__Gift__c;
-                  String type = trans.AQB__Type__c;
-                  Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
-                  Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
-                  
-                  AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                  WHERE 
-                  AQB__Gift__c = :gift 
-                  AND MDA_Batch_Item_ID2__c = :batchItem 
-                  AND Id != :transId
-                  AND AQB__Type__c = :type 
-                  AND AQB__PaymentNumber__c > :paymentNumber 
-                  AND AQB__PledgePayment__c = :pledgePayment]; 
-                            
-                  if(correctTrans.size() > 0){
-                                for(AQB__Transaction__c trans2: correctTrans){
-                                trans.AQB__Do_not_push_to_Accounting__c = true;
-                                trans2.MDA_Credit_Account_Number__c = trans2.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                                trans2.MDA_Credit_AccountLookup__c = trans2.AQB__ChartofAccounts__c;
-                                trans2.MDA_Debit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                                trans2.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
-                                trans2.MDA_GL_Posting_Type__c = 'Automated';
-                                trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
-                                trans2.MDA_Related_Void_Transaction__c = trans.Id;
-                                recordsProcessed = recordsProcessed + 1;
-                                correctTransactions.add(trans2);					                     
-                            }
-                        
-                            }else{
-                            //Scenario 27 - Transaction Type of Payment with adjusted pledge payment and conditional pledge stipulation
-                            // and no corrected transaction found
-                            trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
-                            trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
-                            trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
-                            trans.MDA_Debit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                            trans.MDA_GL_Posting_Type__c = 'Automated';
-                            recordsProcessed = recordsProcessed + 1;
-                            }
-                 
-             } else if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c != 'Conditional'){
-                           //GET RECORDS
-                            Id transId = trans.Id;
-                            Id batchItem = trans.MDA_Batch_Item_ID2__c;
-                            Id gift = trans.AQB__Gift__c;
-                            String type = trans.AQB__Type__c;
-                            Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
-                            Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
-                            AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                            WHERE AQB__Gift__c = :gift AND MDA_Batch_Item_ID2__c = :batchItem AND Id != :transId
-                            AND AQB__Type__c = :type AND AQB__PaymentNumber__c > :paymentNumber AND AQB__PledgePayment__c = :pledgePayment];  
-                            if(correctTrans.size() > 0){
-                                for(AQB__Transaction__c trans2: correctTrans){
-                                    trans.AQB__Do_not_push_to_Accounting__c = true;
-                                    trans2.MDA_GL_Posting_Type__c = 'Manual';
-                                    trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
-                                    trans2.MDA_Related_Void_Transaction__c = transId;
-                                    correctTransactions.add(trans2);
-                                    recordsProcessed = recordsProcessed + 1;    
-                                }
-                            
-                            }else{
-                                trans.MDA_GL_Posting_Type__c = 'Manual';
-                                recordsProcessed = recordsProcessed + 1; 
-                            }  
-                }
-             
-             else if(trans.AQB__PledgePayment__c == false){
-                //Scenario 28 - Transaction Type of Payment with NO adjusted pledge payment 
-                //AND corrected transaction found
-                Id transId = trans.Id;
-                Id batchItem = trans.MDA_Batch_Item_ID2__c;
-                Id gift = trans.AQB__Gift__c;
-                String type = trans.AQB__Type__c;
-                Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
-                Boolean pledgePayment = trans.AQB__PledgePayment__c; 
-          		AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                WHERE AQB__Gift__c = :gift 
-                AND MDA_Batch_Item_ID2__c = :batchItem 
-                AND Id != :transId
-                AND AQB__Type__c = :type];
-
-             		if(trans.AQB__PledgePayment__c == false && correctTrans.size() > 0){
-                 		for(AQB__Transaction__c trans2: correctTrans){
-         				trans.AQB__Do_not_push_to_Accounting__c = true;
-                        trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
-                        trans2.MDA_Related_Void_Transaction__c = transId;
-                     	trans2.MDA_Credit_Account_Number__c = trans2.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                     	trans2.MDA_Credit_AccountLookup__c = trans2.AQB__ChartofAccounts__c;
-                     	trans2.MDA_Debit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                     	trans2.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
-                        trans2.MDA_GL_Posting_Type__c = 'Automated';
-                     	recordsProcessed = recordsProcessed + 1;
-					 	correctTransactions.add(trans2);								                     
-                 	}
-                 
-                    }else{
-                    //Scenario 29 - Transaction Type of Payment with NO adjusted pledge payment 
-                    //AND NO corrected transaction found
-                    trans.MDA_Credit_AccountLookup__c = trans.AQB__DebitAccount__c;
-                    trans.MDA_Credit_Account_Number__c = trans.AQB__DebitAccount__r.AQB__DesignationAccountNumber__c;
-                    trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
-                    trans.MDA_Debit_Account_Number__c = trans.AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c;
-                    trans.MDA_GL_Posting_Type__c = 'Automated';
-                    recordsProcessed = recordsProcessed + 1;	
-                    }
-                 
-             }
-         } 
-         
-        //Scenario 31 - Checks Transaction Type of either Grant, Soft Credit and Pledge Soft Credit
-         else if(transType.contains(trans.AQB__Type__c) == true){
-            trans.AQB__Do_not_push_to_Accounting__c = true;
-            recordsProcessed = recordsProcessed + 1; 
-         }
-         
-         //Check Type of Plegde
-         else if(trans.AQB__Type__c == 'Pledge' || trans.AQB__Type__c == 'Statement of Intent'){
-             if (trans.AQB__PledgeStipulation__c == 'Conditional'){
+            if(trans.AQB__Type__c == 'Pledge' && trans.AQB__ThirdPartyPayoff__c == false ){
                 trans.AQB__Do_not_push_to_Accounting__c = true;
-                recordsProcessed = recordsProcessed + 1;   
-             } else if(trans.AQB__PledgeStipulation__c == 'Unconditional'){
-                //GET RECORDS
-                Id transId = trans.Id;
-                Id batchItem = trans.MDA_Batch_Item_ID2__c;
-                Id gift = trans.AQB__Gift__c;
-                String type = trans.AQB__Type__c;
-                Decimal paymentNumber = trans.AQB__PaymentNumber__c; 
-                Boolean pledgePayment = trans.AQB__PledgePayment__c;                   
-                AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c 
-                WHERE AQB__Gift__c = :gift 
-                AND MDA_Batch_Item_ID2__c = :batchItem 
-                AND Id != :transId
-                AND AQB__Type__c = :type 
-                AND AQB__PaymentNumber__c > :paymentNumber 
-                AND AQB__PledgePayment__c = :pledgePayment];  
-                if(correctTrans.size() > 0){
-                    for(AQB__Transaction__c trans2: correctTrans){
-                        trans.AQB__Do_not_push_to_Accounting__c = true;
-                        trans2.MDA_GL_Posting_Type__c = 'Manual';
-                        trans2.MDA_Original_Transaction__c = trans.AQB__VoidedTransaction__r.Id;
-                        trans2.MDA_Related_Void_Transaction__c = transId;
-                        correctTransactions.add(trans2);
-                        recordsProcessed = recordsProcessed + 1;    
-                    } 
-                }else{
-                    trans.MDA_GL_Posting_Type__c = 'Manual';
-                    recordsProcessed = recordsProcessed + 1; 
-                } 
-
-            }else{
-             trans.MDA_Credit_Debit_Account_Error__c = true;
-             recordsProcessed = recordsProcessed + 1; 
             }
+            if(trans.AQB__Type__c == 'Grant' && trans.AQB__PledgePayment__c == false && trans.AQB__ThirdPartyPayoff__c == false ){
+                trans.AQB__Do_not_push_to_Accounting__c = true;
+            }
+            if(trans.AQB__SourceofData__c == 'Grants Management System' && trans.AQB__Type__c == 'Grant Payment' ){
+                if(trans.AQB__PledgePayment__c = true && trans.AQB__ThirdPartyPayoff__c == false){
+                    trans.AQB__Do_not_push_to_Accounting__c = true;
+                } else if (trans.AQB__PledgePayment__c = false && trans.AQB__ThirdPartyPayoff__c == false){
+                    trans.AQB__Do_not_push_to_Accounting__c = true;
+                }
 
-             
-         }
-         //Check Property
-         else if (trans.AQB__Type__c == 'Payment' && propertyType.contains(trans.AQB__Method__c)) {
-            trans.AQB__Do_not_push_to_Accounting__c = true;
-            recordsProcessed = recordsProcessed + 1;   
-            
+            }
+            if(trans.AQB__Type__c == 'Payment' && trans.AQB__ThirdPartyPayoff__c == false){
+                if(trans.AQB__SourceofData__c == 'Gift in Kind Form / Documentation' ){
+                    if(trans.AQB__PledgePayment__c = false  && AQB__PledgeStipulation__c = null){
+                        trans.AQB__Do_not_push_to_Accounting__c = true;
+                    }
+
+                }
+                if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'  ){
+                    if(trans.AQB__PledgePayment__c == false && trans.AQB__PledgeStipulation__c == Null){
+                        trans.AQB__DebitAccount__c = coa;
+                        trans.MDA_Debit_Account__c = coa;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Automated';
+
+                    }else if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
+                        trans.AQB__DebitAccount__c = coa;
+                        trans.MDA_Debit_Account__c = coa;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Automated';
+
+
+                    } else if (trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Unconditional'){
+                        trans.AQB__DebitAccount__c = coa;
+                        trans.MDA_Debit_Account__c = coa;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Manual';
+                        
+
+                    }
+
+                }
+                if(dataSource.contains(trans.AQB__SourceofData__c) && trans.AQB__PledgePayment__c == false){
+                    if(trans.AQB__PledgeStipulation__c == Null && trans.AQB__Method__c == 'Credit Card'){
+                            trans.AQB__DebitAccount__c = coa2;
+                            trans.MDA_Debit_Account__c = coa2;
+                            trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                            trans.MDA_GL_Posting_Type__c = 'Automated';
+                    }else if(rans.AQB__PledgeStipulation__c == Null && paymentMethod.contains(trans.AQB__Method__c )){
+                            trans.AQB__DebitAccount__c = coa3;
+                            trans.MDA_Debit_Account__c = coa3;
+                            trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                            trans.MDA_GL_Posting_Type__c = 'Automated';
+
+                    }
+
+                }
+                if(dataSource.contains(trans.AQB__SourceofData__c) && trans.AQB__PledgePayment__c == true){
+                    if(trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__Method__c == 'Credit Card'){
+                        trans.AQB__DebitAccount__c = coa2;
+                        trans.MDA_Debit_Account__c = coa2;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Automated';
+
+                    } else if (trans.AQB__PledgeStipulation__c == 'Conditional' && paymentMethod.contains(trans.AQB__Method__c )){
+                        trans.AQB__DebitAccount__c = coa3;
+                        trans.MDA_Debit_Account__c = coa3;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Automated';
+
+                    } else if(trans.AQB__PledgeStipulation__c == 'Unconditional' && trans.AQB__Method__c == 'Credit Card'){
+                        trans.AQB__DebitAccount__c = coa2;
+                        trans.MDA_Debit_Account__c = coa2;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Manual';
+
+                    }else if (trans.AQB__PledgeStipulation__c == 'Unonditional' && paymentMethod.contains(trans.AQB__Method__c )){
+                        trans.AQB__DebitAccount__c = coa3;
+                        trans.MDA_Debit_Account__c = coa3;
+                        trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                        trans.MDA_GL_Posting_Type__c = 'Manual';
+
+                    }
+
+
+                }
+            }
+       
+
         }
-        //After Checking It Is Not Soft Credit OR ANYTHING ABOVE
-        else if (!transType2.contains(trans.AQB__Type__c )){
-            trans.MDA_Credit_Debit_Account_Error__c = true;
-            recordsProcessed = recordsProcessed + 1; 
-        }
-      
-      }
-    }
 
-//Check the batch is not closed if it is not a closed batch set to MDA_Credit_Debit_Account_Error__c to true
-   else{
-            trans.MDA_Credit_Debit_Account_Error__c = true;
-            recordsProcessed = recordsProcessed + 1;   
-        }
-    }
-
-}
-
-    // Set<AQB__Transaction__c> myset = new Set<AQB__Transaction__c>();
-    // List<AQB__Transaction__c> result = new List<AQB__Transaction__c>();
-    // myset.addAll(transList);
-    // result.addAll(myset);
-
-    // Set<AQB__Transaction__c> myset2 = new Set<AQB__Transaction__c>();
-    // List<AQB__Transaction__c> result2 = new List<AQB__Transaction__c>();
-    // myset2.addAll(correctTransactions);
-    // result2.addAll(myset2);
-  
+   
   //System.debug(transList.size() +'=====TRANSLIST BATCH SIZE====' + JSON.serializePretty(transList));
   Database.SaveResult[] results = Database.update(transList, false);
   //System.debug(correctTransactions.size() +'===== CorrectTrans BATCH SIZE ====' + JSON.serializePretty(correctTransactions));
