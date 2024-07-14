@@ -56,7 +56,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         
         for(AQB__Transaction__c trans: transList) {
             trans.AQB__Do_not_push_to_Accounting__c = false;
-            if(trans.AQB__Type__c == 'Pledge' && trans.AQB__ThirdPartyPayoff__c == false ){
+            if(trans.AQB__Type__c == 'Pledge' && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgePayment__c == false ){
                 trans.AQB__Do_not_push_to_Accounting__c = true;
             }
             if(trans.AQB__Type__c == 'Grant' && trans.AQB__PledgePayment__c == false && trans.AQB__ThirdPartyPayoff__c == false ){
@@ -68,32 +68,32 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 } else if (trans.AQB__PledgePayment__c = false && trans.AQB__ThirdPartyPayoff__c == false){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                 }
-
             }
+
             if(trans.AQB__Type__c == 'Payment' && trans.AQB__ThirdPartyPayoff__c == false){
                 if(trans.AQB__SourceofData__c == 'Gift in Kind Form / Documentation' ){
-                    if(trans.AQB__PledgePayment__c = false  && AQB__PledgeStipulation__c = null){
+                    if(trans.AQB__PledgePayment__c == false  && trans.AQB__PledgeStipulation__c == null){
                         trans.AQB__Do_not_push_to_Accounting__c = true;
                     }
 
                 }
                 if(trans.AQB__SourceofData__c == 'Annual Fund Lockbox'  ){
-                    if(trans.AQB__PledgePayment__c == false && trans.AQB__PledgeStipulation__c == Null){
-                        trans.AQB__DebitAccount__c = coa;
-                        trans.MDA_Debit_Account__c = coa;
+                    if(trans.AQB__PledgePayment__c == false && trans.AQB__PledgeStipulation__c == null){
+                        trans.AQB__DebitAccount__c = coa.Id;
+                        trans.MDA_Debit_Account__c = coa.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Automated';
 
                     }else if(trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Conditional'){
-                        trans.AQB__DebitAccount__c = coa;
-                        trans.MDA_Debit_Account__c = coa;
+                        trans.AQB__DebitAccount__c = coa.Id;
+                        trans.MDA_Debit_Account__c = coa.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Automated';
 
 
                     } else if (trans.AQB__PledgePayment__c == true && trans.AQB__PledgeStipulation__c == 'Unconditional'){
-                        trans.AQB__DebitAccount__c = coa;
-                        trans.MDA_Debit_Account__c = coa;
+                        trans.AQB__DebitAccount__c = coa.Id;
+                        trans.MDA_Debit_Account__c = coa.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Manual';
                         
@@ -102,14 +102,14 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
                 }
                 if(dataSource.contains(trans.AQB__SourceofData__c) && trans.AQB__PledgePayment__c == false){
-                    if(trans.AQB__PledgeStipulation__c == Null && trans.AQB__Method__c == 'Credit Card'){
-                            trans.AQB__DebitAccount__c = coa2;
-                            trans.MDA_Debit_Account__c = coa2;
+                    if(trans.AQB__PledgeStipulation__c == null && trans.AQB__Method__c == 'Credit Card'){
+                            trans.AQB__DebitAccount__c = coa2.Id;
+                            trans.MDA_Debit_Account__c = coa2.Id;
                             trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                             trans.MDA_GL_Posting_Type__c = 'Automated';
-                    }else if(rans.AQB__PledgeStipulation__c == Null && paymentMethod.contains(trans.AQB__Method__c )){
-                            trans.AQB__DebitAccount__c = coa3;
-                            trans.MDA_Debit_Account__c = coa3;
+                    }else if(trans.AQB__PledgeStipulation__c == null && paymentMethod.contains(trans.AQB__Method__c )){
+                            trans.AQB__DebitAccount__c = coa3.Id;
+                            trans.MDA_Debit_Account__c = coa3.Id;
                             trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                             trans.MDA_GL_Posting_Type__c = 'Automated';
 
@@ -118,26 +118,26 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 }
                 if(dataSource.contains(trans.AQB__SourceofData__c) && trans.AQB__PledgePayment__c == true){
                     if(trans.AQB__PledgeStipulation__c == 'Conditional' && trans.AQB__Method__c == 'Credit Card'){
-                        trans.AQB__DebitAccount__c = coa2;
-                        trans.MDA_Debit_Account__c = coa2;
+                        trans.AQB__DebitAccount__c = coa2.Id;
+                        trans.MDA_Debit_Account__c = coa2.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Automated';
 
                     } else if (trans.AQB__PledgeStipulation__c == 'Conditional' && paymentMethod.contains(trans.AQB__Method__c )){
-                        trans.AQB__DebitAccount__c = coa3;
-                        trans.MDA_Debit_Account__c = coa3;
+                        trans.AQB__DebitAccount__c = coa3.Id;
+                        trans.MDA_Debit_Account__c = coa3.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Automated';
 
                     } else if(trans.AQB__PledgeStipulation__c == 'Unconditional' && trans.AQB__Method__c == 'Credit Card'){
-                        trans.AQB__DebitAccount__c = coa2;
-                        trans.MDA_Debit_Account__c = coa2;
+                        trans.AQB__DebitAccount__c = coa2.Id;
+                        trans.MDA_Debit_Account__c = coa2.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Manual';
 
-                    }else if (trans.AQB__PledgeStipulation__c == 'Unonditional' && paymentMethod.contains(trans.AQB__Method__c )){
-                        trans.AQB__DebitAccount__c = coa3;
-                        trans.MDA_Debit_Account__c = coa3;
+                    }else if (trans.AQB__PledgeStipulation__c == 'Unconditional' && paymentMethod.contains(trans.AQB__Method__c )){
+                        trans.AQB__DebitAccount__c = coa3.Id;
+                        trans.MDA_Debit_Account__c = coa3.Id;
                         trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                         trans.MDA_GL_Posting_Type__c = 'Manual';
 
