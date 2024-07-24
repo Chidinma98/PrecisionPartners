@@ -10,7 +10,7 @@
 public class mda_transactionHistoricalUpdateTest2 {
 
   private static final AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c 
-  WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
   private static final AQB__LLChartofAccounts__c coa2 = [Select Id, AQB__DesignationAccountNumber__c from AQB__LLChartofAccounts__c 
   WHERE MDACC_COAExternalID__c = 'MDACC-700057-30-108356-19' LIMIT 1];
@@ -31,7 +31,7 @@ static testmethod void pledgeFalsePayment(){
     AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
     AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
     //Query COA        
-    AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+    AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
     //Add Transactions
     AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -51,7 +51,7 @@ static testmethod void pledgeFalsePayment(){
     insert trans1;
 
           
-    Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+   
     Test.startTest();
     mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
     Database.executeBatch(b);
@@ -78,7 +78,7 @@ static testmethod void grantFalsePayment(){
   AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
   AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
   //Query COA        
-  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
   //Add Transactions
   AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -97,7 +97,7 @@ static testmethod void grantFalsePayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -125,7 +125,7 @@ static testmethod void grantManagementPayment(){
   AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
   AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
   //Query COA        
-  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
   //Add Transactions
   AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -144,7 +144,6 @@ static testmethod void grantManagementPayment(){
   insert trans1;
 
         
-Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -172,7 +171,7 @@ static testmethod void grantManagementNoPayment(){
   AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
   AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
   //Query COA        
-  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
   //Add Transactions
   AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -191,7 +190,7 @@ static testmethod void grantManagementNoPayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -220,7 +219,7 @@ static testmethod void giftInKindPayment(){
   AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
   AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
   //Query COA        
-  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90-11324' LIMIT 1];
 
   //Add Transactions
   AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -240,7 +239,7 @@ static testmethod void giftInKindPayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -289,7 +288,7 @@ static testmethod void annualFundPayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -302,7 +301,7 @@ static testmethod void annualFundPayment(){
   Assert.areEqual(coa.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -341,7 +340,7 @@ static testmethod void annualFundPledgePayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -354,7 +353,7 @@ static testmethod void annualFundPledgePayment(){
   Assert.areEqual(coa.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -393,7 +392,7 @@ static testmethod void annualFundPledgePaymentUncon(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -406,7 +405,7 @@ static testmethod void annualFundPledgePaymentUncon(){
   Assert.areEqual(coa.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Manual', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Manual-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -446,7 +445,7 @@ static testmethod void mailFalsepledgePayment(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -459,7 +458,7 @@ static testmethod void mailFalsepledgePayment(){
   Assert.areEqual(coa2.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa2.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -499,7 +498,7 @@ static testmethod void mailFalsepledgePaymenDataSource(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -512,7 +511,7 @@ static testmethod void mailFalsepledgePaymenDataSource(){
   Assert.areEqual(coa3.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa3.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -552,7 +551,7 @@ static testmethod void mailTruepledgePaymenDataSource(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -565,7 +564,7 @@ static testmethod void mailTruepledgePaymenDataSource(){
   Assert.areEqual(coa2.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa2.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -605,7 +604,7 @@ static testmethod void mailTruepledgePaymenDataSourceCon(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -618,7 +617,7 @@ static testmethod void mailTruepledgePaymenDataSourceCon(){
   Assert.areEqual(coa3.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa3.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Automated', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -658,7 +657,7 @@ static testmethod void mailTruepledgePaymenDataSourceUnCon(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -671,7 +670,7 @@ static testmethod void mailTruepledgePaymenDataSourceUnCon(){
   Assert.areEqual(coa2.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa2.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Manual', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Manual-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
@@ -712,7 +711,7 @@ static testmethod void mailTruepledgePaymenDataSourceUnConTr(){
   insert trans1;
 
         
-  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
+ 
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -725,7 +724,7 @@ static testmethod void mailTruepledgePaymenDataSourceUnConTr(){
   Assert.areEqual(coa3.Id, trans.AQB__DebitAccount__c );
   Assert.areEqual(coa3.Id, trans.MDA_Debit_Account__c);
   Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-  Assert.areEqual('Manual', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual('Manual-Historical', trans.MDA_GL_Posting_Type__c);
   
 } 
 
