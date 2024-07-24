@@ -49,8 +49,9 @@ static testmethod void pledgeFalsePayment(){
     trans1.AQB__PledgePayment__c = false;
 
     insert trans1;
-    
+
           
+    Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
     Test.startTest();
     mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
     Database.executeBatch(b);
@@ -94,8 +95,9 @@ static testmethod void grantFalsePayment(){
   trans1.AQB__PledgePayment__c = false;
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -140,8 +142,9 @@ static testmethod void grantManagementPayment(){
   trans1.AQB__PledgePayment__c = true;
 
   insert trans1;
-  
+
         
+Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -186,8 +189,9 @@ static testmethod void grantManagementNoPayment(){
   trans1.AQB__PledgePayment__c = false;
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -234,8 +238,9 @@ static testmethod void giftInKindPayment(){
   trans1.AQB__PledgeStipulation__c = null;
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2024, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -282,8 +287,9 @@ static testmethod void annualFundPayment(){
   trans1.AQB__PledgeStipulation__c = null;
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -333,8 +339,9 @@ static testmethod void annualFundPledgePayment(){
   trans1.AQB__PledgeStipulation__c = 'Conditional';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -384,8 +391,9 @@ static testmethod void annualFundPledgePaymentUncon(){
   trans1.AQB__PledgeStipulation__c = 'Unconditional';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -436,8 +444,9 @@ static testmethod void mailFalsepledgePayment(){
   trans1.AQB__Method__c = 'Credit Card';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -488,8 +497,9 @@ static testmethod void mailFalsepledgePaymenDataSource(){
   trans1.AQB__Method__c = 'Transfer';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -540,8 +550,9 @@ static testmethod void mailTruepledgePaymenDataSource(){
   trans1.AQB__Method__c = 'Credit Card';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -592,8 +603,9 @@ static testmethod void mailTruepledgePaymenDataSourceCon(){
   trans1.AQB__Method__c = 'Transfer';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -644,8 +656,9 @@ static testmethod void mailTruepledgePaymenDataSourceUnCon(){
   trans1.AQB__Method__c = 'Credit Card';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
@@ -697,8 +710,9 @@ static testmethod void mailTruepledgePaymenDataSourceUnConTr(){
   trans1.AQB__Method__c = 'Transfer';
 
   insert trans1;
-  
+
         
+  Test.setCreatedDate(trans1.Id, DateTime.newInstance(2023, 1, 1));
   Test.startTest();
   mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
   Database.executeBatch(b);
