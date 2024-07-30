@@ -63,6 +63,7 @@ static testmethod void pledgeFalsePayment(){
     mda_testRecord__c = true LIMIT 1]; 
     System.assertEquals(true, trans.AQB__Do_not_push_to_Accounting__c);
     
+    
 } 
 
 /**
