@@ -1,6 +1,1 @@
-// Use .soql files to store SOQL queries.
-// You can execute queries in VS Code by selecting the
-//     query text and running the command:
-//     SFDX: Execute SOQL Query with Currently Selected Text
-
-SELECT Id, Name FROM Account
+SELECT Id, Name, CreatedDate, IsDeleted, LastModifiedDate, AQB__Gift__c, AQB__Account__c, AQB__Amount__c, AQB__Balance__c, AQB__Batch__c, AQB__ConditionalPledge__c, AQB__Date__c, AQB__Method__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, AQB__Type__c FROM AQB__Transaction__c where CreatedDate >= 2023-10-17T19:00:00Z AND CreatedDate <= 2023-12-31T19:00:00Z AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__Batch__r.AQB__SourceofData__c = 'Adjustments' AND AQB__Type__c = 'Payment'
