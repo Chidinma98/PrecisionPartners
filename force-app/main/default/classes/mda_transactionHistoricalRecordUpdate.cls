@@ -248,6 +248,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 } 
 
                 if(trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgePayment__c == false && trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c == null){
+                   
                     AQB__BatchCorrectionTransaction__c bcTrans = [Select Id, AQB__OriginalDesignation__c,AQB__Designation__c, AQB__LinkToTransaction__c from AQB__BatchCorrectionTransaction__c WHERE AQB__LinkToTransaction__c = :transId];
                     trans.MDA_Debit_Account__c = bcTrans.AQB__OriginalDesignation__c;
                     trans.MDA_Credit_AccountLookup__c = bcTrans.AQB__Designation__c;
@@ -263,7 +264,12 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
    
   //System.debug(transList.size() +'=====TRANSLIST BATCH SIZE====' + JSON.serializePretty(transList));
-  Database.SaveResult[] results = Database.update(transList, false);
+  
+
+    
+    Database.SaveResult[] results = Database.update(transList, false);
+
+ 
   
          
     }   

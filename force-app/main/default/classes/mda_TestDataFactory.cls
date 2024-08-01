@@ -29,6 +29,16 @@ public class mda_TestDataFactory {
 		return batch;
 	}
 
+    public static AQB__Batch__c createBatchGPC(String name, Boolean doInsert) {
+        Id closedBatch = Schema.SObjectType.AQB__Batch__c.getRecordTypeInfosByName().get('Closed Batch').getRecordTypeId();
+        AQB__Batch__c batch = new AQB__Batch__c(AQB__SourceofData__c = name, RecordTypeId = closedBatch,
+        AQB__BatchType__c='Gift/Pledge Corrections');
+		if(doInsert) {
+			insert batch;
+		}
+		return batch;
+	}
+
 
     
     public static Account createAccount(String name, Boolean doInsert) {

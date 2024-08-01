@@ -794,6 +794,234 @@ static testmethod void adjFalsePledgeNonUnique(){
   AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
   //Query COA        
   //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  //Get Correct Transaction
+   AQB__Transaction__c correctTrans = mda_TestDataFactory.createMatchingTransaction();
+
+
+  //Add Transactions
+  AQB__Transaction__c trans1 = new AQB__Transaction__c();
+  //Core Fields
+  trans1.AQB__Date__c = date.today();
+  trans1.AQB__Account__c = acc.Id; 
+  trans1.AQB__Batch__c = batch.Id;
+  trans1.AQB__Acknowledgement__c = ack.Id; 
+  trans1.AQB__ChartofAccounts__c = aoc.Id;
+  trans1.AQB__OriginatingBatchItemTransaction__c = correctTrans.AQB__OriginatingBatchItemTransaction__c;
+  trans1.AQB__Gift__c = correctTrans.AQB__Gift__c;
+  trans1.mda_testRecord__c = true;
+
+  //Test Data
+  trans1.AQB__Type__c ='Payment';
+  trans1.AQB__PledgePayment__c = false;
+  trans1.AQB__ThirdPartyPayoff__c = false;
+  trans1.AQB__VoidedTransaction__c = mda_TestDataFactory.chooseVoidedTransaction().Id;
+
+  //
+
+ 
+
+  insert trans1;
+
+        
+ 
+  Test.startTest();
+  mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+  Database.executeBatch(b);
+  Test.stopTest();  
+  
+  AQB__Transaction__c trans =[Select Id,AQB__Do_not_push_to_Accounting__c,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1];
+  
+  
+  Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c );
+  
+} 
+
+/**
+ * @description:adjTruePledgeUnique
+ * @Comments: Check Situation of Adjustment where there is a True Pledge Payment
+**/     
+static testmethod void adjTruePledgeUnique(){
+  //ADD BATCH DATA
+  AQB__Batch__c batch = mda_TestDataFactory.createBatchGP('Adjustments',true);        
+  //ADD ACCOUNT DATA
+  Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+  //QUERY OTHER OBJECTS  
+  AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+  AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+  //Query COA        
+  //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+
+  //Add Transactions
+  AQB__Transaction__c trans1 = new AQB__Transaction__c();
+  //Core Fields
+  trans1.AQB__Date__c = date.today();
+  trans1.AQB__Account__c = acc.Id; 
+  trans1.AQB__Batch__c = batch.Id;
+  trans1.AQB__Acknowledgement__c = ack.Id; 
+  trans1.AQB__ChartofAccounts__c = aoc.Id;
+  trans1.mda_testRecord__c = true;
+  //Test Data
+  trans1.AQB__Type__c ='Payment';
+  trans1.AQB__PledgePayment__c = true;
+  trans1.AQB__ThirdPartyPayoff__c = false;
+  trans1.AQB__VoidedTransaction__c = mda_TestDataFactory.chooseVoidedTransaction().Id;
+
+  //
+
+ 
+
+  insert trans1;
+
+        
+ 
+  Test.startTest();
+  mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+  Database.executeBatch(b);
+  Test.stopTest();  
+  
+  AQB__Transaction__c trans =[Select Id,AQB__Do_not_push_to_Accounting__c,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1]; 
+  Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c );
+  Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual(true,  trans.MDA_Credit_Debit_Account_Error__c);
+  
+} 
+
+/**
+ * @description:adjFalsePledgeUniqueNonVoidTrans
+ * @Comments: Check Situation of Adjustment with a non- voided transaction.
+**/     
+static testmethod void adjFalsePledgeUniqueNonVoidTrans(){
+  //ADD BATCH DATA
+  AQB__Batch__c batch = mda_TestDataFactory.createBatchGP('Adjustments',true);        
+  //ADD ACCOUNT DATA
+  Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+  //QUERY OTHER OBJECTS  
+  AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+  AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+  //Query COA        
+  //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+
+  //Add Transactions
+  AQB__Transaction__c trans1 = new AQB__Transaction__c();
+  //Core Fields
+  trans1.AQB__Date__c = date.today();
+  trans1.AQB__Account__c = acc.Id; 
+  trans1.AQB__Batch__c = batch.Id;
+  trans1.AQB__Acknowledgement__c = ack.Id; 
+  trans1.AQB__ChartofAccounts__c = aoc.Id;
+  trans1.mda_testRecord__c = true;
+  //Test Data
+  trans1.AQB__Type__c ='Payment';
+  trans1.AQB__PledgePayment__c = false;
+  trans1.AQB__ThirdPartyPayoff__c = false;
+
+  //
+
+ 
+
+  insert trans1;
+
+        
+ 
+  Test.startTest();
+  mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+  Database.executeBatch(b);
+  Test.stopTest();  
+  
+  AQB__Transaction__c trans =[Select Id,AQB__Do_not_push_to_Accounting__c,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1]; 
+  Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c );
+  Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+  Assert.areEqual(true,  trans.MDA_Credit_Debit_Account_Error__c);
+  
+} 
+
+/**
+ * @description:adjFalsePledgeNonUniqueNonVoidTrans
+ * @Comments: Check Situation of Adjustment with a non- voided transaction with a non-unique batch item Id.
+**/     
+static testmethod void adjFalsePledgeNonUniqueNonVoidTrans(){
+  //ADD BATCH DATA
+  AQB__Batch__c batch = mda_TestDataFactory.createBatchGP('Adjustments',true);        
+  //ADD ACCOUNT DATA
+  Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+  //QUERY OTHER OBJECTS  
+  AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+  AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+  //Query COA        
+  //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+  //Get Correct Transaction
+  AQB__Transaction__c correctTrans = mda_TestDataFactory.createMatchingTransaction();
+
+
+  //Add Transactions
+  AQB__Transaction__c trans1 = new AQB__Transaction__c();
+  //Core Fields
+  trans1.AQB__Date__c = date.today();
+  trans1.AQB__Account__c = acc.Id; 
+  trans1.AQB__Batch__c = batch.Id;
+  trans1.AQB__Acknowledgement__c = ack.Id; 
+  trans1.AQB__ChartofAccounts__c = aoc.Id;
+  trans1.AQB__OriginatingBatchItemTransaction__c = correctTrans.AQB__OriginatingBatchItemTransaction__c;
+  trans1.AQB__Gift__c = correctTrans.AQB__Gift__c;
+  trans1.mda_testRecord__c = true;
+  //Test Data
+  trans1.AQB__Type__c ='Payment';
+  trans1.AQB__PledgePayment__c = false;
+  trans1.AQB__ThirdPartyPayoff__c = false;
+
+  //
+
+ 
+
+  insert trans1;
+
+        
+ 
+  Test.startTest();
+  mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+  Database.executeBatch(b);
+  Test.stopTest();  
+  
+  AQB__Transaction__c trans =[Select Id,AQB__Do_not_push_to_Accounting__c,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1]; 
+
+  AQB__Transaction__c uCorrectTrans =[Select Id, MDA_GL_Posting_Type__c, AQB__DebitAccount__c, MDA_Credit_Account_Number__c, MDA_Credit_AccountLookup__c, MDA_Debit_Account_Number__c, AQB__ChartofAccounts__c, MDA_Debit_Account__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c FROM AQB__Transaction__c WHERE 
+  AQB__Reference__c= 'correctTrans' LIMIT 1];
+
+  Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c );
+  Assert.areEqual(uCorrectTrans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+  Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
+  Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+  
+} 
+
+/**
+ * @description:adjFalseGPC
+ * @Comments: Check Situation of Adjustment where Batch Type is Gift/Pledge Corrections
+**/     
+static testmethod void adjFalseGPC(){
+  //ADD BATCH DATA
+  AQB__Batch__c batch = mda_TestDataFactory.createBatchGPC('Adjustments',true);        
+  //ADD ACCOUNT DATA
+  Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+  //QUERY OTHER OBJECTS  
+  AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+  AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+  //Query COA        
+  //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
 
   //Add Transactions
   AQB__Transaction__c trans1 = new AQB__Transaction__c();
@@ -828,8 +1056,80 @@ static testmethod void adjFalsePledgeNonUnique(){
   MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
   mda_testRecord__c = true LIMIT 1]; 
   Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c );
+
   
 } 
+
+/**
+ * @description:adjFalseGPCNull
+ * @Comments: Check Situation of Adjustment where Batch Type is Gift/Pledge Corrections without a voided transaction
+**/     
+static testmethod void adjFalseGPCNull(){
+  //ADD BATCH DATA
+  AQB__Batch__c batch = mda_TestDataFactory.createBatchGPC('Adjustments',true);        
+  //ADD ACCOUNT DATA
+  Account acc = mda_TestDataFactory.createAccount('Test Account',true);              
+  //QUERY OTHER OBJECTS  
+  AQB__Acknowledgement__c ack = mda_TestDataFactory.getAcknowledgement();       
+  AQB__LLChartofAccounts__c aoc = mda_TestDataFactory.getCOA();      
+  //Query COA        
+  //AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c WHERE MDACC_COAExternalID__c = 'MDACC-700001-30-100001-90 -11324' LIMIT 1];
+
+  //Add Transactions
+  AQB__Transaction__c trans1 = new AQB__Transaction__c();
+  //Core Fields
+  trans1.AQB__Date__c = date.today();
+  trans1.AQB__Account__c = acc.Id; 
+  trans1.AQB__Batch__c = batch.Id;
+  trans1.AQB__Acknowledgement__c = ack.Id; 
+  trans1.AQB__ChartofAccounts__c = aoc.Id;
+  trans1.mda_testRecord__c = true;
+  //Test Data
+  trans1.AQB__Type__c ='Payment';
+  trans1.AQB__PledgePayment__c = false;
+  trans1.AQB__ThirdPartyPayoff__c = false;
+  //
+
+ 
+
+  insert trans1;
+
+  AQB__BatchCorrectionItem__c bCI = [Select Id from AQB__BatchCorrectionItem__c WHERE AQB__Batch__r.AQB__BatchType__c = 'Gift/Pledge Corrections' LIMIT:1];
+
+  AQB__Transaction__c trans =[Select Id,AQB__Do_not_push_to_Accounting__c,RecordType.DeveloperName,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1];  
+  
+  AQB__BatchCorrectionTransaction__c abc = new AQB__BatchCorrectionTransaction__c(
+    AQB__LinkToTransaction__c = trans.Id,
+    AQB__OriginalDesignation__c = trans.MDA_Debit_Account__c,
+    AQB__Designation__c = trans.MDA_Credit_AccountLookup__c,
+    AQB__BatchCorrectionItem__c = bCI.Id
+   );
+
+   insert abc;
+ 
+  Test.startTest();
+  mda_transactionHistoricalRecordUpdate b = new mda_transactionHistoricalRecordUpdate();
+  Database.executeBatch(b);
+  Test.stopTest(); 
+
+  AQB__Transaction__c trans2 =[Select Id,AQB__Do_not_push_to_Accounting__c,RecordType.DeveloperName,
+  AQB__FinancialSystemDate__c, MDA_Journal_ID__c, 
+  MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Credit_Debit_Account_Error__c, mda_testRecord__c, MDA_GL_Posting_Type__c, MDA_Credit_AccountLookup__c, MDA_Credit_Account_Number__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__c, AQB__DebitAccount__r.MDACC_COAExternalID__c, MDA_Debit_Account__c, MDA_Debit_Account_Number__c  FROM AQB__Transaction__c WHERE 
+  mda_testRecord__c = true LIMIT 1];
+  
+  AQB__BatchCorrectionTransaction__c bcTrans = [Select Id, AQB__OriginalDesignation__c,AQB__Designation__c, AQB__LinkToTransaction__c from AQB__BatchCorrectionTransaction__c WHERE AQB__LinkToTransaction__c = :trans.Id];
+
+  Assert.areEqual(bcTrans.AQB__OriginalDesignation__c, trans.MDA_Debit_Account__c);
+  Assert.areEqual(bcTrans.AQB__Designation__c, trans.MDA_Credit_AccountLookup__c);
+  Assert.areEqual('Automated-Historical', trans2.MDA_GL_Posting_Type__c);
+  Assert.areEqual(false, trans2.MDA_Credit_Debit_Account_Error__c );
+
+  
+} 
+
 
 
 }
