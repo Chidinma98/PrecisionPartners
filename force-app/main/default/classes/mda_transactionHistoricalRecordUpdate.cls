@@ -251,6 +251,8 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                     AQB__BatchCorrectionTransaction__c bcTrans = [Select Id, AQB__OriginalDesignation__c,AQB__Designation__c, AQB__LinkToTransaction__c from AQB__BatchCorrectionTransaction__c WHERE AQB__LinkToTransaction__c = :transId];
                     trans.MDA_Debit_Account__c = bcTrans.AQB__OriginalDesignation__c;
                     trans.MDA_Credit_AccountLookup__c = bcTrans.AQB__Designation__c;
+                    trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                    trans.MDA_Credit_Debit_Account_Error__c = false;
                 }
 
             }
