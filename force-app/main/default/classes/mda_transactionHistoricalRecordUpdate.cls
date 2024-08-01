@@ -40,7 +40,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
    List<AQB__Transaction__c> transList = new  List<AQB__Transaction__c>();
 
     global Database.QueryLocator start(Database.BatchableContext BC) {
-        String query = 'Select Id, mda_testRecord__c, AQB__VoidedTransaction__r.Id, MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Batch_Item_ID2__c, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__Instrument__c, AQB__Gift__r.AQB__Instrument__c,  AQB__Gift__r.AQB__MatchLink__r.Id, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c, MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z AND CreatedDate <= 2024-07-16T19:00:00Z';
+        String query = 'Select Id, AQB__Batch__r.AQB__BatchType__c, mda_testRecord__c, AQB__VoidedTransaction__r.Id, MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Batch_Item_ID2__c, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__Instrument__c, AQB__Gift__r.AQB__Instrument__c,  AQB__Gift__r.AQB__MatchLink__r.Id, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c, MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z AND CreatedDate <= 2024-07-16T19:00:00Z';
         if (Test.isRunningTest()){
             //query += ' LIMIT 100';
             query ='Select Id, mda_testRecord__c, AQB__VoidedTransaction__r.Id, MDA_Original_Transaction__c, MDA_Related_Void_Transaction__c, MDA_Batch_Item_ID2__c, AQB__Batch__r.AQB__RecordTypeDeveloperName__c, AQB__Instrument__c, AQB__Gift__r.AQB__Instrument__c,  AQB__Gift__r.AQB__MatchLink__r.Id, AQB__ThirdPartyPayoff__c, AQB__FinancialSystemDate__c, MDA_GL_Posting_Type__c,  AQB__DebitAccount__r.AQB__DesignationAccountNumber__c, MDA_Credit_AccountLookup__c, AQB__DebitAccount__c, AQB__ChartofAccounts__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c, AQB__ChartofAccounts__r.Id, MDA_Debit_Account__c, AQB__Gift__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c,MDA_Credit_Debit_Account_Error__c, MDA_Credit_Account_Number__c, MDA_Debit_Account_Number__c, AQB__PaymentNumber__c,  AQB__Type__c, AQB__Method__c, AQB__Batch__r.AQB__SourceofData__c,AQB__SourceofData__c, AQB__VoidedTransaction__c, AQB__PledgeStipulation__c, AQB__PledgePayment__c from AQB__Transaction__c WHERE CreatedDate >= 2023-10-17T19:00:00Z';
@@ -81,6 +81,9 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
         //Scenario 105: New and Adjusted Pledges, Matching Gifts, Planned Gifts
         for(AQB__Transaction__c trans: transList) {
             trans.AQB__Do_not_push_to_Accounting__c = false;
+            Id transId = trans.Id;
+            Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
+            Id gift = trans.AQB__Gift__c;
             if(trans.AQB__Type__c == 'Pledge' && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgePayment__c == false ){
                 trans.AQB__Do_not_push_to_Accounting__c = true;
                 recordsProcessed += 1;
@@ -191,14 +194,67 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
 
 
                 }
-//Adjustments
-                if(trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c != Null){
+//Adjustments   
+                if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges'){
+                    if(trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c != null){             
+                        if(trans.AQB__PledgePayment__c == false && trans.AQB__ThirdPartyPayoff__c == false ){
+                            AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                if(correctTrans.size() == 0){
+                                    trans.AQB__Do_not_push_to_Accounting__c = false;
+                                    trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                    trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                    trans.MDA_Credit_Debit_Account_Error__c = true;
+                            } else {
+                                trans.AQB__Do_not_push_to_Accounting__c = true;
+                            }
+                        } 
+                        if(trans.AQB__PledgePayment__c == true && trans.AQB__ThirdPartyPayoff__c == false){
+                            AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                            if(correctTrans.size() == 0){
+                                trans.AQB__Do_not_push_to_Accounting__c = false;
+                                trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                trans.MDA_Credit_Debit_Account_Error__c = true;
+                            }
+                            
+                        }
+                     
 
-                }
-            
-            
+                
+                    }
+                    if(trans.AQB__PledgePayment__c == false && trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c == null){
+                        if(trans.AQB__ThirdPartyPayoff__c == false){
+                            AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                            if(correctTrans.size() == 0){
+                                trans.AQB__Do_not_push_to_Accounting__c = false;
+                                trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                trans.MDA_Credit_Debit_Account_Error__c = true;
+                            } else {
+                                trans.AQB__Do_not_push_to_Accounting__c = false;
+                                trans.MDA_Debit_Account__c = correctTrans[0].AQB__ChartofAccounts__c;
+                                trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
+                                trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                            }
+                        }
+
+                    }                
             
             }
+            if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gift/Pledge Corrections'){
+                if(trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgePayment__c == false && trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c != null){
+                    trans.AQB__Do_not_push_to_Accounting__c = true;
+
+                } 
+
+                if(trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgePayment__c == false && trans.AQB__SourceofData__c == 'Adjustments' && trans.AQB__Type__c =='Payment' && trans.AQB__VoidedTransaction__c == null){
+                    AQB__BatchCorrectionTransaction__c bcTrans = [Select Id, AQB__OriginalDesignation__c,AQB__Designation__c, AQB__LinkToTransaction__c from AQB__BatchCorrectionTransaction__c WHERE AQB__LinkToTransaction__c = :transId];
+                    trans.MDA_Debit_Account__c = bcTrans.AQB__OriginalDesignation__c;
+                    trans.MDA_Credit_AccountLookup__c = bcTrans.AQB__Designation__c;
+                }
+
+            }
+        }
        
 
         }
