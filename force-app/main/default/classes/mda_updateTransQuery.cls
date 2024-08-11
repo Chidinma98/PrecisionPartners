@@ -27,6 +27,7 @@ global class mda_updateTransQuery {
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                 }
                 Database.SaveResult[] results = Database.update(trans105, false);
+                System.debug(trans105.size() + '   ===> trans105 records updated');
             } catch(Exception e){
                 System.debug( 'Error Inserting trans105 ==>' +  e );
             }
@@ -41,6 +42,7 @@ global class mda_updateTransQuery {
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                 }
                 Database.SaveResult[] results = Database.update(trans106, false);
+                System.debug(trans106.size() + '   ===> trans106 records updated');
             } catch(Exception e){
                 System.debug( 'Error Inserting trans106 ==>' +  e );
             }
@@ -55,7 +57,9 @@ global class mda_updateTransQuery {
                 for(AQB__Transaction__c trans: trans107){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                 }
+                
                 Database.SaveResult[] results = Database.update(trans107, false);
+                System.debug(trans107.size() + '   ===> trans107 records updated');
             } catch(Exception e){
                 System.debug( 'Error Inserting trans107 ==>' +  e );
             }
@@ -71,6 +75,7 @@ global class mda_updateTransQuery {
                    trans.AQB__Do_not_push_to_Accounting__c = true;
                }
                Database.SaveResult[] results = Database.update(trans108, false);
+               System.debug(trans108.size() + '   ===> trans108 records updated');
            } catch(Exception e){
                System.debug( 'Error Inserting trans108 ==>' +  e );
            }
@@ -85,6 +90,7 @@ global class mda_updateTransQuery {
                    trans.AQB__Do_not_push_to_Accounting__c = true;
                }
                Database.SaveResult[] results = Database.update(trans109, false);
+               System.debug(trans109.size() + '   ===> trans109 records updated');
            } catch(Exception e){
                System.debug( 'Error Inserting trans109 ==>' +  e );
            }
@@ -108,6 +114,7 @@ global class mda_updateTransQuery {
                 trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
                }
                Database.SaveResult[] results = Database.update(trans110, false);
+               System.debug(trans110.size() + '   ===> trans110 records updated');
            } catch(Exception e){
                System.debug( 'Error Inserting trans110 ==>' +  e );
            }
@@ -153,6 +160,7 @@ global class mda_updateTransQuery {
                 trans.MDA_GL_Posting_Type__c = 'Manual-Historical';
                }
                Database.SaveResult[] results = Database.update(trans112, false);
+               System.debug(trans112.size() + 'trans112 records updated');
            } catch(Exception e){
                System.debug( 'Error Inserting trans112 ==>' +  e );
            }
@@ -176,6 +184,7 @@ global class mda_updateTransQuery {
                 trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
             }
             Database.SaveResult[] results = Database.update(trans113, false);
+            System.debug(trans113.size() + 'trans113 records updated');
         } catch(Exception e){
             System.debug( 'Error Inserting trans113 ==>' +  e );
         }
@@ -199,6 +208,7 @@ global class mda_updateTransQuery {
                          
          }
          Database.SaveResult[] results = Database.update(trans114, false);
+         System.debug(trans114.size() + 'trans114 records updated');
      } catch(Exception e){
          System.debug( 'Error Inserting trans114 ==>' +  e );
      }
@@ -220,11 +230,13 @@ global class mda_updateTransQuery {
           trans.MDA_Debit_Account__c = coa2.Id;
           trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
           trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+          
                       
       }
       Database.SaveResult[] results = Database.update(trans115, false);
+      System.debug(trans115.size() + 'trans115 records updated');
   } catch(Exception e){
-      System.debug( 'Error Inserting trans114 ==>' +  e );
+      System.debug( 'Error Inserting trans115 ==>' +  e );
   }
 
 
@@ -247,6 +259,7 @@ global class mda_updateTransQuery {
                       
       }
       Database.SaveResult[] results = Database.update(trans116, false);
+      System.debug(trans116.size() + 'trans116 records updated');
   } catch(Exception e){
       System.debug( 'Error Inserting trans116 ==>' +  e );
   }
@@ -270,6 +283,7 @@ global class mda_updateTransQuery {
                         
         }
         Database.SaveResult[] results = Database.update(trans117, false);
+        System.debug(trans117.size() + 'trans117 records updated');
     } catch(Exception e){
         System.debug( 'Error Inserting trans117 ==>' +  e );
     }
@@ -294,6 +308,7 @@ global class mda_updateTransQuery {
                      
      }
      Database.SaveResult[] results = Database.update(trans118, false);
+     System.debug(trans118.size() + 'trans118 records updated');
  } catch(Exception e){
      System.debug( 'Error Inserting trans118 ==>' +  e );
  }
