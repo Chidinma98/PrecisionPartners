@@ -94,7 +94,7 @@ global class mda_transactionHistoricalRecordUpdate implements Database.Batchable
                 recordsProcessed += 1;
             }
         //Scenario 107: Grant Payments where the source is the Click Grants Report 
-            if(trans.AQB__SourceofData__c == 'Grants Management System' && trans.AQB__Type__c == 'Grant Payment' ){
+            if(trans.AQB__SourceofData__c == 'Grants Management System' && (trans.AQB__Type__c == 'Grant Payment' || 'Payment' )){
                 if(trans.AQB__PledgePayment__c = true && trans.AQB__ThirdPartyPayoff__c == false){
                     trans.AQB__Do_not_push_to_Accounting__c = true;
                     recordsProcessed += 1;
