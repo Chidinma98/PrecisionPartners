@@ -1,7 +1,5 @@
 global class mda_updateTransQuery {
     public void mda_updateTransQuery() {
-        //IF STATEMENTS
-        //Regular Query
 
         //Chart of Accounts
         AQB__LLChartofAccounts__c coa = [Select Id, AQB__DesignationAccountNumber__c  from AQB__LLChartofAccounts__c 
