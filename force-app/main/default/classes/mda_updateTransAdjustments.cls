@@ -216,6 +216,30 @@ global class  mda_updateTransAdjustments implements Database.Batchable<sObject>,
                                         }    
                         }
 
+//124- Gift Corrections using Gift/Pledge Corrections Batch - Voided Transaction
+                        if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges Corrections' && trans.AQB__PledgePayment__c == false 
+                            && trans.AQB__ThirdPartyPayoff__c == false ){
+                                trans.AQB__Do_not_push_to_Accounting__c = true;
+
+                            }
+//125- Gift Corrections using Gift/Pledge Corrections Batch - Corrected Transactions
+                        if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges Corrections' && trans.AQB__PledgePayment__c == false 
+                            && trans.AQB__ThirdPartyPayoff__c == false ){
+                                
+                                AQB__BatchCorrectionTransaction__c glDebit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+                                WHERE AQB__LinkToTransaction__c = :trans.Id];
+
+                                AQB__LLChartofAccounts__c glCredit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+                                WHERE AQB__LinkToTransaction__c = :trans.Id];
+                                        
+                                    trans.MDA_Debit_Account__c = glDebit.AQB__OriginalDesignation__c;
+                                    trans.MDA_Credit_AccountLookup__c = glCredit.AQB__OriginalDesignation__c;
+                                    trans.AQB__Do_not_push_to_Accounting__c = false;
+                                    trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                    trans.MDA_Credit_Debit_Account_Error__c = false;
+
+                        }
+
 
 
 
