@@ -32,10 +32,10 @@ global class  mda_updateTransAdjustments implements Database.Batchable<sObject>,
             Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
             Id gift = trans.AQB__Gift__c;
             trans.AQB__Do_not_push_to_Accounting__c = false;
-//Scenario 119A - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Annual Fund
         if(trans.AQB__VoidedTransaction__c != Null){
+//Scenario 119A - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Annual Fund
                     if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
-                    && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && trans.AQB__ThirdPartyPayoff__c == false &&  trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                     && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                     && trans.AQB__VoidedTransaction__r.AQB__SourceofData__c =='Annual Fund Lockbox' ){
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
@@ -44,14 +44,216 @@ global class  mda_updateTransAdjustments implements Database.Batchable<sObject>,
                                         trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
                                         trans.MDA_Credit_AccountLookup__c = coa.Id;
                                         trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
-                                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                                        trans.MDA_Credit_Debit_Account_Error__c = false;
                                     }
                         
                     }
-                }
+//119B - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Other Sources that Post to GL;  funds received via Credit Card
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__Method__c =='Credit Card' && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
+                    && dataSource.contains(trans.AQB__VoidedTransaction__r.AQB__SourceofData__c) == true ){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                        trans.MDA_Credit_AccountLookup__c = coa2.Id;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = false;
+                                    }
+                        
+                    }
+//119C - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Other Sources that Post to GL;  funds received via ACH, Cash, Check, PayPal, Securities, Transfer, Wire
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false && paymentMethod.contains(trans.AQB__Method__c) == true  && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
+                    && dataSource.contains(trans.AQB__VoidedTransaction__r.AQB__SourceofData__c) == true ){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                        trans.MDA_Credit_AccountLookup__c = coa3.Id;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = false;
+                                    }
+    
+                    }
+//119D -Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is null
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false  && trans.AQB__VoidedTransaction__r.AQB__SourceofData__c == Null ){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = false;
+                                    }
+
+                    }
+ //119E - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Endowment
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false 
+                    && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = true;
+                                    
+                                    }
+                    }
+//119F- Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Missing
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false 
+                    && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL ){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = true;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                                    
+                                    }
+                    }
+//121C- Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Conditional OR NULL
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
+                    && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == Null
+                    && (trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == Null || trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == 'Conditional' ) ){                
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                                }
+//121D-Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Unconditional
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
+                    && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == Null
+                    && trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == 'Unconditional'){                
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_GL_Posting_Type__c = 'Manual-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = true;
+                                }
+        }
+//122-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Voided Transaction
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'
+                    ){  
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() > 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = true;
+                                    }              
+                                        
+                                }
+//123A - Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction;  properly linked to the Void Transaction; Old Designation is a Gift Fund, Non-Endowment; New Designation is a Gift Fund, Non-Endowment
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' &&
+                    trans.AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
+                    && trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
+                    && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'
+                    ){  
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() > 0){
+                                        AQB__LLChartofAccounts__c glDebit = [Select Id, AQB__Transaction__c.AQB__ChartofAccounts__c   from AQB__LLChartofAccounts__c 
+                                        WHERE AQB__Transaction__c.AQB__VoidedTransaction__c != NULL LIMIT 1];
+                                        AQB__LLChartofAccounts__c glCredit = [Select Id, AQB__Transaction__c.AQB__ChartofAccounts__c   from AQB__LLChartofAccounts__c 
+                                        WHERE AQB__Transaction__c.AQB__VoidedTransaction__c = NULL LIMIT 1];
+                                        
+                                        trans.MDA_Debit_Account__c = glDebit;
+                                        trans.MDA_Credit_AccountLookup__c = glCredit;
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                                        trans.MDA_Credit_Debit_Account_Error__c = false;
+                                    }              
+                                        
+                                }
+// 123B- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was a Grant Fund or the New Designation is a Grant Fund
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                        && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' &&
+                        trans.AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' 
+                        && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'){
+                            if(correctTrans.size() > 0){                            
+                                trans.AQB__Do_not_push_to_Accounting__c = false;
+                                trans.MDA_Credit_Debit_Account_Error__c = true;
+                            }   
+
+                    }
+//123C- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                        && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' &&
+                        trans.AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' && 
+                        ((trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                        && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false) || (
+                        trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL &&
+                        designationAccountType.contains(trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false))
+
+                        && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'
+                    ){  
+                            AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                        if(correctTrans.size() > 0){                    
+                                            trans.AQB__Do_not_push_to_Accounting__c = false;
+                                            trans.MDA_Credit_Debit_Account_Error__c = false;
+                                        }              
+                                        
+                        }
+    
+//123D- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
+                        if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                            && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' &&
+                            trans.AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' 
+                            && (trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL || trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL)
+                            && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'){
+                                AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                        if(correctTrans.size() > 0){                    
+                                            trans.AQB__Do_not_push_to_Accounting__c = false;
+                                            trans.MDA_Credit_Debit_Account_Error__c = false;
+                                        }      
+
+                            }
+//123E-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - The Void and Correction Feature was NOT USED
+                        if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                            && trans.AQB__ThirdPartyPayoff__c == false && AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c != 'Void'){
+                                AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                        if(correctTrans.size() > 0){                    
+                                            trans.AQB__Do_not_push_to_Accounting__c = false;
+                                        }    
+                        }
+
+
+
+
         if(trans.AQB__VoidedTransaction__c == Null){
+// 120 - Adjusted Donations that were entered using a GIfts/Pledges Batch Type, but is not linked to the Voided Transaction
+                    if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
+                    && trans.AQB__ThirdPartyPayoff__c == false 
+                    && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL ){
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                                    if(correctTrans.size() == 0){
+                                        trans.AQB__Do_not_push_to_Accounting__c = false;
+                                    
+                                    }
+                    }
+            
 
         }
+//DOUBLE CHECK WITH DAUWN
+// 121A-Adjusted pledge payment that were entered using a GIfts/Pledges Batch Type - Conditional Pledge
+if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
+&& trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == 'Conditional'
+ ){
+                    trans.AQB__Do_not_push_to_Accounting__c = false;
+                    trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
+                    trans.MDA_Credit_Debit_Account_Error__c = true;
+                
+               
+}
+
+//121B-Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Unconditional Pledge
+if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
+&& trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == 'Unconditional'){ 
+                    trans.AQB__Do_not_push_to_Accounting__c = false;
+                    trans.MDA_GL_Posting_Type__c = 'Manual-Historical';
+                    trans.MDA_Credit_Debit_Account_Error__c = true;
+                
+}
+
 
 
 
