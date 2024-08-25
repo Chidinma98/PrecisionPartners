@@ -46,9 +46,6 @@ static testmethod void voidedDonations(){
                         originalId.add(trans1.Id);
                         break;
                     } 
-            
-
-
 
     }
 
@@ -65,6 +62,7 @@ static testmethod void voidedDonations(){
     AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
     MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
 
+    System.debug('trans' + trans);
     Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
     Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
     Assert.areEqual(coa.Id, trans.MDA_Credit_AccountLookup__c);
