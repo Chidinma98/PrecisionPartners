@@ -26,13 +26,11 @@ public with sharing class mda_updateTransAdjV2Test {
  * @description:voidedDonations
  * Scenario 119A - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Annual Fund
 **/ 
-
 static testmethod void voidedDonations(){
 
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
-
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
     AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND  AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
@@ -41,14 +39,14 @@ static testmethod void voidedDonations(){
 
     
     for (AQB__Transaction__c trans1 :originalTrans){
-            for(AQB__Transaction__c correctTrans : [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c 
+                AQB__Transaction__c[] correctTrans = [Select Id
                 from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
-                AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]){
-                    if(correctTrans.Id == Null) {           
+                AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
+                    if(correctTrans.size() == 0) {           
                         originalId.add(trans1.Id);
                         break;
                     } 
-            }
+            
 
 
 
