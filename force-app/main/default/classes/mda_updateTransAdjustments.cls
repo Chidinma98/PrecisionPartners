@@ -25,8 +25,6 @@ global class  mda_updateTransAdjustments implements Database.Batchable<sObject>,
         Set<String> paymentMethod = new Set<String>{'Cash','Check','Securities','ACH','Wire', 'Paypal', 'Transfer'};
         Set<String> designationAccountType = new Set<String>{'Endowment','Quasi Endowment'};    
     
-    //{trans.AQB__Batch__r.AQB__BatchType__c, trans.AQB__PledgePayment__c, trans.AQB__ThirdPartyPayoff__c,
-    //trans.AQB__Type__c,trans.AQB__Method__c  }
         for(AQB__Transaction__c trans: transList) {
             Id transId = trans.Id;
             Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
