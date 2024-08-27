@@ -61,8 +61,6 @@ static testmethod void voidedDonations(){
 
     AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
     MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
-
-    System.debug('trans' + trans);
     Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
     Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
     Assert.areEqual(coa.Id, trans.MDA_Credit_AccountLookup__c);
@@ -73,8 +71,106 @@ static testmethod void voidedDonations(){
 
     }
 
-      
+/**
+ * @description:voidedTransactionsLinked
+ * 119B - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Other Sources that Post to GL;  funds received via Credit Card
+**/ 
 
+static testmethod void voidedTransactionsLinked(){
+    Set<Id> originalId = new Set<Id>{};
+    Set<Id> correctedId =  new Set<Id>{};
+    
+    AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
+    AND AQB__ThirdPartyPayoff__c = false AND AQB__Method__c ='Credit Card' AND AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+    AND AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN :designationAccountType];
+
+    
+    for (AQB__Transaction__c trans1 :originalTrans){
+                AQB__Transaction__c[] correctTrans = [Select Id
+                from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
+                AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
+                    if(correctTrans.size() == 0) {           
+                        originalId.add(trans1.Id);
+                        break;
+                    } 
+
+    }
+
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
+
+    Test.startTest();
+    mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
+    Database.executeBatch(b);
+    Test.stopTest();
+
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+    Assert.areEqual(coa2.Id, trans.MDA_Credit_AccountLookup__c);
+    Assert.areEqual('Automated-Historical',   trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);
+
+   
+
+}
+
+
+
+/**
+ * @description:voidedGiftPledges
+ * 119C - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is Other Sources that Post to GL;  funds received via ACH, Cash, Check, PayPal, Securities, Transfer, Wire
+**/ 
+
+static testmethod void voidedGiftPledges(){
+    Set<Id> originalId = new Set<Id>{};
+    Set<Id> correctedId =  new Set<Id>{};
+    
+    AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
+    AND AQB__ThirdPartyPayoff__c = false AND AQB__Method__c IN :paymentMethod  AND AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+    AND AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN :designationAccountType
+    AND AQB__VoidedTransaction__r.AQB__SourceofData__c IN :dataSource];
+
+    
+    for (AQB__Transaction__c trans1 :originalTrans){
+                AQB__Transaction__c[] correctTrans = [Select Id
+                from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
+                AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
+                    if(correctTrans.size() == 0) {           
+                        originalId.add(trans1.Id);
+                        break;
+                    } 
+
+    }
+
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
+
+    Test.startTest();
+    mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
+    Database.executeBatch(b);
+    Test.stopTest();
+
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+    Assert.areEqual(coa3.Id, trans.MDA_Credit_AccountLookup__c);
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);
+
+   
+
+}
 
 
 
