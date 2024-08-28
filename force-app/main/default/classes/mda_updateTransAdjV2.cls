@@ -97,7 +97,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                         
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() == 0){
-                                        System.debug('finds record 2');
                                         trans.AQB__Do_not_push_to_Accounting__c = true;
                                     
                                     }
@@ -108,7 +107,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                     && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL ){
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() == 0){
-                                        System.debug('finds record 3');
                                         trans.AQB__Do_not_push_to_Accounting__c = true;
                                     
                                     }
