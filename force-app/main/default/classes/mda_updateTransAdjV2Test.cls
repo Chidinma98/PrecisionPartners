@@ -171,8 +171,10 @@ static testmethod void voidedGiftPledges(){
    
 
 }
-
-//119D -Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is null
+/** 
+ * @description:voidedLinked
+ * 119D -Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Voided Transaction Source of Data is null
+**/
 static testmethod void voidedLinked(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -193,28 +195,31 @@ static testmethod void voidedLinked(){
 
     }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
     
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
-    // Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
-    // Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
-    // Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);
 
 }
 
-//119E - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Endowment
 
+/** 
+ * @description:voidedDonationsEntered
+ *119E - Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Endowment
+**/
 static testmethod void voidedDonationsEntered(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -253,7 +258,11 @@ static testmethod void voidedDonationsEntered(){
     
 
 }
-//119F- Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Missing
+
+/** 
+ *@description:missingAccount
+ *119F- Voided donations that were entered using a GIfts/Pledges Batch Type - linked to the Voided Transaction; Account Type is Missing
+**/
 static testmethod void missingAccounts(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -275,26 +284,29 @@ static testmethod void missingAccounts(){
 
     }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
     
-    // Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c);
     
 
 }
-// 120 - Adjusted Donations that were entered using a GIfts/Pledges Batch Type, but is not linked to the Voided Transaction
 
 
+/** 
+ * @description:adjustedDonations
+ * 120 - Adjusted Donations that were entered using a GIfts/Pledges Batch Type, but is not linked to the Voided Transaction
+**/
 static testmethod void adjustedDonations(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -302,10 +314,6 @@ static testmethod void adjustedDonations(){
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
     AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__SourceofData__c = 'Adjustments'];
-
-//     Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-// AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false AND AQB__ThirdPartyPayoff__c = false 
-
     
     for (AQB__Transaction__c trans1 :originalTrans){
                 AQB__Transaction__c[] correctTrans = [Select Id
@@ -339,8 +347,11 @@ static testmethod void adjustedDonations(){
 
 }
 
-// 121A-Adjusted pledge payment that were entered using a GIfts/Pledges Batch Type - Conditional Pledge
 
+/** 
+ * @description:adjustedPlege
+ * 121A-Adjusted pledge payment that were entered using a GIfts/Pledges Batch Type - Conditional Pledge
+**/
 static testmethod void adjustedPlege(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -361,27 +372,29 @@ static testmethod void adjustedPlege(){
 
     }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
     
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
-    // Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
-    // Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c);
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c);
 
 }
 
-//121B-Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Unconditional Pledge
-
+/** 
+ * @description:voidedUnconditional
+ *121B-Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Unconditional Pledge
+**/
 static testmethod void voidedUnconditional(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -412,7 +425,10 @@ static testmethod void voidedUnconditional(){
 
 }
 
-//121C- Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Conditional OR NULL
+/** 
+ *@description:missingPledgeType
+ *121C- Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Conditional OR NULL
+**/
 static testmethod void missingPledgeType(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -444,40 +460,47 @@ static testmethod void missingPledgeType(){
 
 }
 
- //121D - Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Unconditional
+ /** 
+  *@description:voidedUnconditionalPay
+  *121D - Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Missing Pledge Type; Voided Transaction is Unconditional
+ **/
  static testmethod void voidedUnconditionalPay(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
-    // AQB__Transaction__c originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-    // AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = true 
-    // AND AQB__ThirdPartyPayoff__c = false AND AQB__PledgeStipulation__c = Null
-    // AND AQB__VoidedTransaction__r.AQB__PledgeStipulation__c = 'Unconditional' AND AQB__SourceofData__c = 'Adjustments' LIMIT 1];
+    AQB__Transaction__c originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = true 
+    AND AQB__ThirdPartyPayoff__c = false AND AQB__PledgeStipulation__c = Null
+    AND AQB__VoidedTransaction__r.AQB__PledgeStipulation__c = 'Unconditional' AND AQB__SourceofData__c = 'Adjustments' LIMIT 1];
 
     
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id = :originalTrans.Id];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id = :originalTrans.Id];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
-    // System.debug('testId ===>' + trans.Id);
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
+    System.debug('testId ===>' + trans.Id);
     
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
-    // Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
-    // Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c);
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c);
     
 
 }
 
-//122-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Voided Transaction
-static testmethod void adjustedVoided(){
+
+ /** 
+  *@description:adjustedVoided
+  *122-Adjusted donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Voided Transaction
+ **/
+  static testmethod void adjustedVoided(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
@@ -514,7 +537,11 @@ update transUpdate;
 
 }
 
- //123A - Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction;  properly linked to the Void Transaction; Old Designation is a Gift Fund, Non-Endowment; New Designation is a Gift Fund, Non-Endowment
+ /** 
+  *@description:adjustedVoidandCorrect
+  *123A - Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction;  properly linked to the Void Transaction; Old Designation is a Gift Fund, Non-Endowment; New Designation is a Gift Fund, Non-Endowment
+ **/
+
  static testmethod void adjustedVoidandCorrect(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -542,31 +569,35 @@ update transUpdate;
 
 }
 
-// AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-// Id transUpdateId = transUpdate.Id;
-// transUpdate.mda_testRecord__c = true;
-// update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];  
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];  
     
-    // AQB__Transaction__c transCorrect = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :correctId AND mda_testRecord__c = true ];
+    AQB__Transaction__c transCorrect = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :correctId AND mda_testRecord__c = true ];
     
-    // Assert.areEqual(transCorrect.Id, trans.MDA_Debit_Account__c);
-    // Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
-    // Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
-    // Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);   
+    Assert.areEqual(transCorrect.Id, trans.MDA_Debit_Account__c);
+    Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
+    Assert.areEqual(false, trans.MDA_Credit_Debit_Account_Error__c);   
 
  }
-// 123B- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was a Grant Fund or the New Designation is a Grant Fund
-static testmethod void voidedDesignation(){
+
+/** 
+  *@description:voidedDesignation
+  *123B- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was a Grant Fund or the New Designation is a Grant Fund
+ **/
+ static testmethod void voidedDesignation(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
@@ -607,9 +638,10 @@ update transUpdate;
 
 }
 
-
- //123C- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
-
+/** 
+  *@description:adjustedDonationsOldNewDesignation
+  *123C- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
+ **/
  static testmethod void adjustedDonationsOldNewDesignation(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -636,27 +668,29 @@ update transUpdate;
 
 }
 
-// AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-// Id transUpdateId = transUpdate.Id;
-// transUpdate.mda_testRecord__c = true;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
 
-// update transUpdate;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
     
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c); 
-    // Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c );      
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c); 
+    Assert.areEqual(true, trans.MDA_Credit_Debit_Account_Error__c );      
 
 }
 
- //123D- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
-
+/** 
+  *@description:adjustedEndowments
+  *123D- Adjusted  donation that was entered using a GIfts/Pledges Batch Type - the Void and Correct Feature was Used; This is the Corrected Transaction; properly  linked to the Void Transaction; Old Designation was an Endowment Fund  or the New Designation is an Endowment Fund
+ **/
 static testmethod void adjustedEndowments(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -680,23 +714,27 @@ static testmethod void adjustedEndowments(){
 
     }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
     
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);    
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);    
 
 }
-//123E-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - The Void and Correction Feature was NOT USED
+
+/** 
+  *@description:adjustedDonationsCorrected
+  *123E-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - The Void and Correction Feature was NOT USED
+**/
 static testmethod void adjustedDonationsCorrected(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -734,7 +772,11 @@ static testmethod void adjustedDonationsCorrected(){
     Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);    
 
 }
-//124- Gift Corrections using Gift/Pledge Corrections Batch - Voided Transaction
+
+ /** 
+  *@description:voidedCorrected
+  *124- Gift Corrections using Gift/Pledge Corrections Batch - Voided Transaction
+ **/
 
 static testmethod void voidedCorrected(){
     Set<Id> originalId = new Set<Id>{};
@@ -756,23 +798,28 @@ static testmethod void voidedCorrected(){
 
 }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
     
-    // Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c);    
+    Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c);    
 
 }
-//125- Gift Corrections using Gift/Pledge Corrections Batch - Corrected Transactions
+
+ /** 
+  *@description:correctedTransactions
+  *125- Gift Corrections using Gift/Pledge Corrections Batch - Corrected Transactions
+**/
+
 static testmethod void correctedTransactions(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
@@ -793,30 +840,30 @@ static testmethod void correctedTransactions(){
 
 }
 
-    // AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    // Id transUpdateId = transUpdate.Id;
-    // transUpdate.mda_testRecord__c = true;
-    // update transUpdate;
+    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
+    Id transUpdateId = transUpdate.Id;
+    transUpdate.mda_testRecord__c = true;
+    update transUpdate;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    // AQB__BatchCorrectionTransaction__c glDebit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
-    // WHERE AQB__LinkToTransaction__c = :transUpdateId];
+    AQB__BatchCorrectionTransaction__c glDebit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+    WHERE AQB__LinkToTransaction__c = :transUpdateId];
 
-    // AQB__BatchCorrectionTransaction__c glCredit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
-    // WHERE AQB__LinkToTransaction__c = :transUpdateId];
+    AQB__BatchCorrectionTransaction__c glCredit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+    WHERE AQB__LinkToTransaction__c = :transUpdateId];
 
-    // AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    // MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
     
-    // Assert.areEqual(glDebit.AQB__OriginalDesignation__c, trans.MDA_Debit_Account__c); 
-    // Assert.areEqual(glCredit.AQB__OriginalDesignation__c, trans.MDA_Credit_AccountLookup__c); 
-    // Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c); 
-    // Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c); 
-    // Assert.areEqual(false,  trans.MDA_Credit_Debit_Account_Error__c );    
+    Assert.areEqual(glDebit.AQB__OriginalDesignation__c, trans.MDA_Debit_Account__c); 
+    Assert.areEqual(glCredit.AQB__OriginalDesignation__c, trans.MDA_Credit_AccountLookup__c); 
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c); 
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c); 
+    Assert.areEqual(false,  trans.MDA_Credit_Debit_Account_Error__c );    
 
 }
 

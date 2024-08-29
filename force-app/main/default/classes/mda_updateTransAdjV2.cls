@@ -26,7 +26,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
         Set<String> designationAccountType = new Set<String>{'Endowment','Quasi Endowment'};    
     
         for(AQB__Transaction__c trans: transList) {
-            System.debug('class Id ===>' + trans.Id);
             Id transId = trans.Id;
             Id batchItem = trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c;
             Id gift = trans.AQB__Gift__c;
@@ -36,7 +35,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                 && trans.AQB__ThirdPartyPayoff__c == false &&  trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                 && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                 && trans.AQB__VoidedTransaction__r.AQB__SourceofData__c =='Annual Fund Lockbox' ){
-                    System.debug('119A');
+                    
                     
                     AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                 if(correctTrans.size() == 0){
@@ -54,7 +53,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                 && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__Method__c =='Credit Card' && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                 && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                      ){
-                        System.debug('119B');
+                       
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() == 0){
                                         trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -70,7 +69,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                 && trans.AQB__ThirdPartyPayoff__c == false && paymentMethod.contains(trans.AQB__Method__c) == true  && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                 && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                 && dataSource.contains(trans.AQB__VoidedTransaction__r.AQB__SourceofData__c) == true ){
-                    System.debug('119C');
+                   
                     AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                 if(correctTrans.size() == 0){
                                     trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -85,7 +84,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
             && trans.AQB__ThirdPartyPayoff__c == false  && trans.AQB__VoidedTransaction__r.AQB__SourceofData__c == Null ){
                 AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
-                System.debug('119D');    
+                  
                         if(correctTrans.size() == 0){
                                 trans.AQB__Do_not_push_to_Accounting__c = false;
                                 trans.MDA_Debit_Account__c = trans.AQB__ChartofAccounts__c;
@@ -99,7 +98,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                     && trans.AQB__ThirdPartyPayoff__c == false 
                     && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                     && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == true){
-                        System.debug('119E');
+                       
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() == 0){
                                         trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -110,7 +109,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
                     && trans.AQB__ThirdPartyPayoff__c == false 
                     && trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL ){
-                        System.debug('119F');
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() == 0){
                                         trans.AQB__Do_not_push_to_Accounting__c = true;
@@ -121,13 +119,11 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             //REVIEW
             if(trans.AQB__VoidedTransaction__c == Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
                 && trans.AQB__ThirdPartyPayoff__c == false ){
-                    System.debug('120');
                     AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                 if(correctTrans.size() == 0){
                                     trans.AQB__Do_not_push_to_Accounting__c = false;
                                     trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
                                     trans.MDA_Credit_Debit_Account_Error__c = true;
-                                    System.debug('record found2');
                                     
                                 
                                 }
@@ -136,7 +132,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__Type__c == 'Payment' && trans.AQB__PledgePayment__c == true 
                 && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == 'Conditional'
                 ){
-                    System.debug('121A');
                     trans.AQB__Do_not_push_to_Accounting__c = false;
                     trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
                     trans.MDA_Credit_Debit_Account_Error__c = true;              
@@ -144,8 +139,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             //121B-Voided pledge payment that were entered using a GIfts/Pledges Batch Type - Unconditional Pledge
             if(trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__Type__c == 'Payment' && trans.AQB__PledgePayment__c == true 
                 && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == 'Unconditional'){ 
-                   
-                    System.debug('121B');
                     trans.AQB__Do_not_push_to_Accounting__c = false;
                     trans.MDA_GL_Posting_Type__c = 'Manual-Historical';
                     trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -155,7 +148,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
                     && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == Null
                     && (trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == Null || trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == 'Conditional' ) ){                
-                        System.debug('121C');
                                         trans.AQB__Do_not_push_to_Accounting__c = false;
                                         trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
                                         trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -166,7 +158,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == true 
                     && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__PledgeStipulation__c == Null
                     && trans.AQB__VoidedTransaction__r.AQB__PledgeStipulation__c == 'Unconditional'){                
-                            System.debug('121D');
                             trans.AQB__Do_not_push_to_Accounting__c = false;
                             trans.MDA_GL_Posting_Type__c = 'Manual-Historical';
                             trans.MDA_Credit_Debit_Account_Error__c = true;
@@ -177,9 +168,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
            if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
                     && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'){  
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
-                        System.debug('122');
                                     if(correctTrans.size() > 0){
-                                        System.debug('finds record 4');
                                         trans.AQB__Do_not_push_to_Accounting__c = true;
                                     }              
                                         
@@ -193,7 +182,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                 && designationAccountType.contains(trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                 && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'
                     ){  
-                        System.debug('123A');
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() > 0){               
                                         trans.MDA_Debit_Account__c = correctTrans[0].AQB__ChartofAccounts__c;
@@ -201,7 +189,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                                         trans.AQB__Do_not_push_to_Accounting__c = false;
                                         trans.MDA_GL_Posting_Type__c = 'Automated-Historical';
                                         trans.MDA_Credit_Debit_Account_Error__c = false;
-                                        System.debug('changing value');
                                     }              
                                         
                                 }
@@ -211,7 +198,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                         && trans.AQB__ThirdPartyPayoff__c == false && (trans.AQB__ChartofAccounts__r.AQB__Category__c == 'Grant Fund' ||
                         trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c == 'Grant Fund') 
                         && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'){
-                            System.debug('123B');
                             AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                             if(correctTrans.size() > 0){                            
                                 trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -228,8 +214,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                         trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL &&
                         designationAccountType.contains(trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c) == true))
                         && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'
-                    ){  
-                        System.debug('123C');    
+                    ){    
                         AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                         if(correctTrans.size() > 0){                    
                                             trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -243,7 +228,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                             trans.AQB__VoidedTransaction__r.AQB__Category__c == 'Gift Fund' 
                             && (trans.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL || trans.AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL)
                             && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'){
-                                System.debug('123D');
                                 AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                         if(correctTrans.size() > 0){                    
                                             trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -254,7 +238,6 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             //123E-Adjusted  donation that was entered using a GIfts/Pledges Batch Type - The Void and Correction Feature was NOT USED
             if(trans.AQB__VoidedTransaction__c == Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges' && trans.AQB__PledgePayment__c == false 
                 && trans.AQB__ThirdPartyPayoff__c == false && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c != 'Void'){
-                    System.debug('123E');
                     AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                         if(correctTrans.size() > 0){                    
                             trans.AQB__Do_not_push_to_Accounting__c = false;
@@ -263,14 +246,12 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
             //124- Gift Corrections using Gift/Pledge Corrections Batch - Voided Transaction
             if(trans.AQB__VoidedTransaction__c != Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges Corrections' && trans.AQB__PledgePayment__c == false 
                 && trans.AQB__ThirdPartyPayoff__c == false ){
-                    System.debug('124');
                     trans.AQB__Do_not_push_to_Accounting__c = true;
 
             }
             //125- Gift Corrections using Gift/Pledge Corrections Batch - Corrected Transactions
             if(trans.AQB__VoidedTransaction__c == Null && trans.AQB__Type__c == 'Payment' && trans.AQB__Batch__r.AQB__BatchType__c == 'Gifts/Pledges Corrections' && trans.AQB__PledgePayment__c == false 
-                && trans.AQB__ThirdPartyPayoff__c == false ){
-                    System.debug('125');            
+                && trans.AQB__ThirdPartyPayoff__c == false ){        
                     AQB__BatchCorrectionTransaction__c glDebit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
                     WHERE AQB__LinkToTransaction__c = :trans.Id];
 
