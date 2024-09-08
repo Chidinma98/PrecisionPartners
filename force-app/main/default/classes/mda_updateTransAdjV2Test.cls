@@ -647,9 +647,9 @@ update transUpdate;
     Set<Id> correctedId =  new Set<Id>{};
     
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND
-    AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' AND 
+    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND 
     ((AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
     AND AQB__ChartofAccounts__r.AQB__Account_Type__c IN :designationAccountType) OR (
     AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL AND
@@ -698,7 +698,7 @@ static testmethod void adjustedEndowments(){
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
     AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND
-    AQB__VoidedTransaction__r.AQB__Category__c = 'Gift Fund' 
+    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' 
     AND (AQB__ChartofAccounts__r.AQB__Account_Type__c = NULL OR AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c = NULL)
     AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void' AND AQB__SourceofData__c = 'Adjustments'];
 
