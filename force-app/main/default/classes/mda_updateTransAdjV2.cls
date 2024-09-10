@@ -186,6 +186,7 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                                         if(correctTrans[0].AQB__ChartofAccounts__r.AQB__Category__c == 'Gift Fund' 
                                             && correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
                                             && designationAccountType.contains(correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c) == false){             
+                                            
                                             trans.MDA_Debit_Account__c = correctTrans[0].AQB__ChartofAccounts__c;
                                             trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                                             trans.AQB__Do_not_push_to_Accounting__c = false;

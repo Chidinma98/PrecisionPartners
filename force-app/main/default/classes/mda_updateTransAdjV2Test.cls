@@ -549,11 +549,8 @@ update transUpdate;
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
     AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND
-    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' 
-    AND AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+    AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
     AND AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN:designationAccountType
-    AND AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
-    AND AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN :designationAccountType
     AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void' AND AQB__SourceofData__c = 'Adjustments'];
 
     
@@ -561,10 +558,16 @@ update transUpdate;
         AQB__Transaction__c[] correctTrans = [Select Id
         from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
         AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
-            if(correctTrans.size() > 0) { 
-                correctId =  correctTrans[0].Id;         
-                originalId.add(trans1.Id);
-                break;
+            if(correctTrans.size() > 0) {
+                if(correctTrans[0].AQB__ChartofAccounts__r.AQB__Category__c == 'Gift Fund' 
+                    && correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+                    && designationAccountType.contains(correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c) == false)
+                    {
+                        correctId =  correctTrans[0].Id;         
+                        originalId.add(trans1.Id);
+                        break;
+                    }
+             
             } 
     }
 
@@ -867,4 +870,4 @@ static testmethod void correctedTransactions(){
 }
 
 
-}                                            
+}
