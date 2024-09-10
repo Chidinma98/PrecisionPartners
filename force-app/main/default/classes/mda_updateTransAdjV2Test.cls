@@ -451,7 +451,6 @@ static testmethod void missingPledgeType(){
 
     AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
     MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];
-    System.debug('testId ===>' + trans.Id);
     
     Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
     Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);
@@ -550,11 +549,12 @@ update transUpdate;
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
     AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND
-    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
+    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' 
+    AND AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
     AND AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN:designationAccountType
     AND AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
     AND AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c NOT IN :designationAccountType
-    AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void'AND AQB__SourceofData__c = 'Adjustments'];
+    AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void' AND AQB__SourceofData__c = 'Adjustments'];
 
     
     for (AQB__Transaction__c trans1 :originalTrans){
@@ -566,8 +566,7 @@ update transUpdate;
                 originalId.add(trans1.Id);
                 break;
             } 
-
-}
+    }
 
     AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
     Id transUpdateId = transUpdate.Id;
@@ -868,4 +867,4 @@ static testmethod void correctedTransactions(){
 }
 
 
-}
+}                                            
