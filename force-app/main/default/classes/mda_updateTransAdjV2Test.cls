@@ -697,20 +697,20 @@ static testmethod void adjustedEndowments(){
     Set<Id> correctedId =  new Set<Id>{};
     
     AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
+    AQB__Gift__c,AQB__ChartofAccounts__r.AQB__Category__c, AQB__ChartofAccounts__r.AQB__Account_Type__c  from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges' AND AQB__PledgePayment__c = false 
     AND AQB__ThirdPartyPayoff__c = false AND AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' AND
-    AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Category__c = 'Gift Fund' 
-    AND (AQB__ChartofAccounts__r.AQB__Account_Type__c = NULL OR AQB__VoidedTransaction__r.AQB__ChartofAccounts__r.AQB__Account_Type__c = NULL)
-    AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void' AND AQB__SourceofData__c = 'Adjustments'];
+    AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c = 'Void' AND AQB__SourceofData__c = 'Adjustments'];
 
     
     for (AQB__Transaction__c trans1 :originalTrans){
-        AQB__Transaction__c[] correctTrans = [Select Id
+        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__r.AQB__Category__c, AQB__ChartofAccounts__r.AQB__Account_Type__c 
         from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
         AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
-            if(correctTrans.size() > 0) {           
-                originalId.add(trans1.Id);
-                break;
+            if(correctTrans.size() > 0) { 
+                if(correctTrans[0].AQB__ChartofAccounts__r.AQB__Category__c == 'Gift Fund' && (trans1.AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL || correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c == NULL)){          
+                    originalId.add(trans1.Id);
+                    break;
+                }
             } 
 
     }
@@ -783,26 +783,12 @@ static testmethod void voidedCorrected(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
-    AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges Corrections' AND AQB__PledgePayment__c = false 
-    AND AQB__ThirdPartyPayoff__c = false AND AQB__SourceofData__c = 'Adjustments'];
+    AQB__Transaction__c originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c != Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gift/Pledge Corrections' AND AQB__PledgePayment__c = false 
+    AND AQB__ThirdPartyPayoff__c = false AND AQB__SourceofData__c = 'Adjustments' LIMIT 1];
 
-    
-    for (AQB__Transaction__c trans1 :originalTrans){
-        AQB__Transaction__c[] correctTrans = [Select Id
-        from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
-        AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
-            if(correctTrans.size() > 0) {           
-                originalId.add(trans1.Id);
-                break;
-            } 
-
-}
-
-    AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
-    Id transUpdateId = transUpdate.Id;
-    transUpdate.mda_testRecord__c = true;
-    update transUpdate;
+    originalTrans.mda_testRecord__c = true;
+    update originalTrans;
 
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
@@ -810,7 +796,7 @@ static testmethod void voidedCorrected(){
     Test.stopTest();
 
     AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :originalTrans.Id AND mda_testRecord__c = true ];   
     
     Assert.areEqual(true, trans.AQB__Do_not_push_to_Accounting__c);    
 
@@ -825,36 +811,50 @@ static testmethod void correctedTransactions(){
     Set<Id> originalId = new Set<Id>{};
     Set<Id> correctedId =  new Set<Id>{};
     
-    AQB__Transaction__c[] originalTrans = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
-    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gifts/Pledges Corrections' AND AQB__PledgePayment__c = false 
-    AND AQB__ThirdPartyPayoff__c = false AND AQB__SourceofData__c = 'Adjustments'];
+    AQB__Transaction__c[] originalTrans  = [Select Id, mda_testRecord__c, AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c, 
+    AQB__Gift__c from  AQB__Transaction__c WHERE AQB__VoidedTransaction__c = Null AND AQB__Type__c = 'Payment' AND AQB__Batch__r.AQB__BatchType__c = 'Gift/Pledge Corrections' AND AQB__PledgePayment__c = false 
+    AND AQB__ThirdPartyPayoff__c = false AND AQB__SourceofData__c = 'Adjustments' ];
 
-    
-    for (AQB__Transaction__c trans1 :originalTrans){
-        AQB__Transaction__c[] correctTrans = [Select Id
-        from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
-        AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
-            if(correctTrans.size() > 0) {           
-                originalId.add(trans1.Id);
-                break;
-            } 
+    for(AQB__Transaction__c trans1 :originalTrans){
+        AQB__BatchCorrectionTransaction__c[] glAccount = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+        WHERE AQB__LinkToTransaction__c = :trans1.Id AND AQB__OriginalDesignation__c != Null AND AQB__Designation__c != Null  ];
+        if(glAccount.size() > 0){
+            originalId.add(trans1.Id);
+            break;
+        }
 
-}
+    }
 
     AQB__Transaction__c transUpdate = [Select Id from AQB__Transaction__c WHERE Id IN:originalId];
     Id transUpdateId = transUpdate.Id;
     transUpdate.mda_testRecord__c = true;
     update transUpdate;
 
+
+
+
+   
+
     Test.startTest();
     mda_updateTransAdjV2 b = new mda_updateTransAdjV2();
     Database.executeBatch(b);
     Test.stopTest();
 
-    AQB__BatchCorrectionTransaction__c glDebit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
+    AQB__BatchCorrectionTransaction__c glAccount = [Select Id, AQB__Designation__c, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
     WHERE AQB__LinkToTransaction__c = :transUpdateId];
 
-    AQB__BatchCorrectionTransaction__c glCredit = [Select Id, AQB__OriginalDesignation__c from AQB__BatchCorrectionTransaction__c  
-    WHERE AQB__LinkToTransaction__c = :transUpdateId];
 
-    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccou
+
+    AQB__Transaction__c trans = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];   
+    
+    Assert.areEqual(glAccount.AQB__OriginalDesignation__c, trans.MDA_Debit_Account__c); 
+    Assert.areEqual(glAccount.AQB__Designation__c , trans.MDA_Credit_AccountLookup__c); 
+    Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c); 
+    Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c); 
+    Assert.areEqual(false,  trans.MDA_Credit_Debit_Account_Error__c );    
+
+}
+
+
+}
