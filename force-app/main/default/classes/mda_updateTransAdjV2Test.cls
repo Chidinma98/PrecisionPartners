@@ -555,7 +555,7 @@ update transUpdate;
 
     
     for (AQB__Transaction__c trans1 :originalTrans){
-        AQB__Transaction__c[] correctTrans = [Select Id
+        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__r.AQB__Category__c, AQB__ChartofAccounts__r.AQB__Account_Type__c
         from AQB__Transaction__c WHERE AQB__Gift__c = :trans1.AQB__Gift__c AND 
         AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :trans1.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c AND Id != :trans1.Id]; 
             if(correctTrans.size() > 0) {
@@ -566,8 +566,7 @@ update transUpdate;
                         correctId =  correctTrans[0].Id;         
                         originalId.add(trans1.Id);
                         break;
-                    }
-             
+                    }             
             } 
     }
 
@@ -585,9 +584,8 @@ update transUpdate;
     MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :transUpdateId AND mda_testRecord__c = true ];  
     
     AQB__Transaction__c transCorrect = [Select Id, AQB__Do_not_push_to_Accounting__c, MDA_Debit_Account__c,AQB__ChartofAccounts__c, MDA_Credit_AccountLookup__c,
-    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :correctId AND mda_testRecord__c = true ];
-    
-    Assert.areEqual(transCorrect.Id, trans.MDA_Debit_Account__c);
+    MDA_GL_Posting_Type__c, MDA_Credit_Debit_Account_Error__c FROM AQB__Transaction__c  WHERE Id = :correctId ];   
+    Assert.areEqual(transCorrect.AQB__ChartofAccounts__c, trans.MDA_Debit_Account__c);
     Assert.areEqual(trans.AQB__ChartofAccounts__c, trans.MDA_Credit_AccountLookup__c);
     Assert.areEqual(false, trans.AQB__Do_not_push_to_Accounting__c);
     Assert.areEqual('Automated-Historical', trans.MDA_GL_Posting_Type__c);

@@ -181,12 +181,13 @@ global class mda_updateTransAdjV2 implements Database.Batchable<sObject>, Databa
                 && designationAccountType.contains(trans.AQB__ChartofAccounts__r.AQB__Account_Type__c) == false
                 && trans.AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__r.AQB__Method__c == 'Void'
                     ){  
-                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
+                        AQB__Transaction__c[] correctTrans = [Select Id, AQB__ChartofAccounts__r.AQB__Category__c,AQB__ChartofAccounts__r.AQB__Account_Type__c, AQB__ChartofAccounts__c, AQB__DebitAccount__c, AQB__ChartofAccounts__r.AQB__DesignationAccountNumber__c from AQB__Transaction__c WHERE AQB__Gift__c = :gift AND AQB__OriginatingBatchItemTransaction__r.AQB__BatchItemID__c = :batchItem AND Id != :transId];  
                                     if(correctTrans.size() > 0){  
                                         if(correctTrans[0].AQB__ChartofAccounts__r.AQB__Category__c == 'Gift Fund' 
                                             && correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c != NULL 
-                                            && designationAccountType.contains(correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c) == false){             
-                                            
+                                            && designationAccountType.contains(correctTrans[0].AQB__ChartofAccounts__r.AQB__Account_Type__c) == false)
+                                            {             
+                                            System.debug('finds matching records');
                                             trans.MDA_Debit_Account__c = correctTrans[0].AQB__ChartofAccounts__c;
                                             trans.MDA_Credit_AccountLookup__c = trans.AQB__ChartofAccounts__c;
                                             trans.AQB__Do_not_push_to_Accounting__c = false;
